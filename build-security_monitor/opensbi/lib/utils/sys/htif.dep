@@ -1,0 +1,4 @@
+/host/build-security_monitor/opensbi/lib/utils/sys/htif.o: /host/tools/opensbi/lib/utils/sys/htif.c \
+ /host/tools/opensbi/include/sbi/riscv_locks.h \
+ /host/tools/opensbi/include/sbi_utils/sys/htif.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h

@@ -1,0 +1,1 @@
+--srcdir=/host/projects/musllibc --prefix=/host/build-security_monitor/musllibc/build-temp/stage  --target=riscv --enable-warnings --disable-shared --enable-static

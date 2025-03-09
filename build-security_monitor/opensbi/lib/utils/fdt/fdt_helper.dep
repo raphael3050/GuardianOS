@@ -1,0 +1,21 @@
+/host/build-security_monitor/opensbi/lib/utils/fdt/fdt_helper.o: /host/tools/opensbi/lib/utils/fdt/fdt_helper.c \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt.h \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt_env.h \
+ /host/tools/opensbi/include/sbi/sbi_string.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/lib/utils/libfdt/fdt.h \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_console.h \
+ /host/tools/opensbi/include/sbi/sbi_hartmask.h \
+ /host/tools/opensbi/include/sbi/sbi_bitmap.h \
+ /host/tools/opensbi/include/sbi/sbi_bitops.h \
+ /host/tools/opensbi/include/sbi/sbi_platform.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h \
+ /host/tools/opensbi/include/sbi/sbi_error.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/sbi_version.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /host/tools/opensbi/include/sbi_utils/irqchip/plic.h \
+ /host/tools/opensbi/include/sbi_utils/sys/clint.h

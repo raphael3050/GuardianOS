@@ -1,0 +1,8 @@
+/host/build-security_monitor/opensbi/lib/sbi/riscv_atomic.o: /host/tools/opensbi/lib/sbi/riscv_atomic.c \
+ /host/tools/opensbi/include/sbi/sbi_bitops.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/riscv_atomic.h \
+ /host/tools/opensbi/include/sbi/riscv_barrier.h

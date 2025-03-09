@@ -1,0 +1,8 @@
+/host/build-security_monitor/opensbi/lib/sbi/sbi_ecall.o: /host/tools/opensbi/lib/sbi/sbi_ecall.c \
+ /host/tools/opensbi/include/sbi/sbi_console.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall.h \
+ /host/tools/opensbi/include/sbi/sbi_list.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h \
+ /host/tools/opensbi/include/sbi/sbi_error.h \
+ /host/tools/opensbi/include/sbi/sbi_trap.h

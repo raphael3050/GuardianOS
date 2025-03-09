@@ -1,0 +1,8 @@
+/host/build-security_monitor/opensbi/lib/utils/irqchip/fdt_irqchip.o: /host/tools/opensbi/lib/utils/irqchip/fdt_irqchip.c \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /host/tools/opensbi/include/sbi_utils/irqchip/fdt_irqchip.h

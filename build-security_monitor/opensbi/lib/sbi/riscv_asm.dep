@@ -1,0 +1,10 @@
+/host/build-security_monitor/opensbi/lib/sbi/riscv_asm.o: /host/tools/opensbi/lib/sbi/riscv_asm.c \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_error.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h \
+ /host/tools/opensbi/include/sbi/sbi_platform.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi/sbi_version.h

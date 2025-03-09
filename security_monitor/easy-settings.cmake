@@ -1,0 +1,1 @@
+../projects/security_monitor/easy-settings.cmake

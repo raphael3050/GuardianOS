@@ -1,0 +1,13 @@
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /usr/bin/riscv64-unknown-elf-gcc 
+Build flags: -march=rv64imac;-mabi=lp64
+Id flags:  
+
+The output was:
+1
+/usr/lib/riscv64-unknown-elf/bin/ld: cannot find crt0.o: No such file or directory
+/usr/lib/riscv64-unknown-elf/bin/ld: cannot find -lc
+/usr/lib/riscv64-unknown-elf/bin/ld: cannot find -lgloss
+collect2: error: ld returned 1 exit status
+
+

@@ -1,0 +1,1 @@
+regen /host/build-security_monitor/kernel/gen_headers/plat/machine/devices_gen.h /host/build-security_monitor/kernel/kernel.dtb;/host/kernel/tools/hardware.yml;/host/kernel/tools/hardware_schema.yml;/host/kernel/tools/hardware_gen.py

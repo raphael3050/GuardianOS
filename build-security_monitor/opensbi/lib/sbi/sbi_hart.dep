@@ -1,0 +1,22 @@
+/host/build-security_monitor/opensbi/lib/sbi/sbi_hart.o: /host/tools/opensbi/lib/sbi/sbi_hart.c \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/riscv_barrier.h \
+ /host/tools/opensbi/include/sbi/riscv_fp.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi/sbi_bitops.h \
+ /host/tools/opensbi/include/sbi/sbi_console.h \
+ /host/tools/opensbi/include/sbi/sbi_domain.h \
+ /host/tools/opensbi/include/sbi/sbi_hartmask.h \
+ /host/tools/opensbi/include/sbi/sbi_bitmap.h \
+ /host/tools/opensbi/include/sbi/sbi_csr_detect.h \
+ /host/tools/opensbi/include/sbi/sbi_hart.h \
+ /host/tools/opensbi/include/sbi/sbi_error.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h \
+ /host/tools/opensbi/include/sbi/sbi_math.h \
+ /host/tools/opensbi/include/sbi/sbi_platform.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/sbi_version.h \
+ /host/tools/opensbi/include/sbi/sbi_string.h \
+ /host/tools/opensbi/include/sbi/sbi_trap.h

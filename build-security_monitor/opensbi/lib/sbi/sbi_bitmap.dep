@@ -1,0 +1,4 @@
+/host/build-security_monitor/opensbi/lib/sbi/sbi_bitmap.o: /host/tools/opensbi/lib/sbi/sbi_bitmap.c \
+ /host/tools/opensbi/include/sbi/sbi_bitmap.h \
+ /host/tools/opensbi/include/sbi/sbi_bitops.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h

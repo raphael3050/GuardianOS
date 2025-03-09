@@ -1,0 +1,5 @@
+/host/build-security_monitor/opensbi/platform/generic/sifive_fu540.o: /host/tools/opensbi/platform/generic/sifive_fu540.c \
+ /host/tools/opensbi/platform/generic/include/platform_override.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_fixup.h

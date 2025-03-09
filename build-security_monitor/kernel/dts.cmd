@@ -1,0 +1,1 @@
+regen /host/build-security_monitor/kernel/kernel.dtb /host/build-security_monitor/qemu-riscv-virt.dts;/host/kernel/src/plat/qemu-riscv-virt/overlay-qemu-riscv-virt.dts

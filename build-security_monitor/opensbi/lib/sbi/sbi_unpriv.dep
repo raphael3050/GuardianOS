@@ -1,0 +1,10 @@
+/host/build-security_monitor/opensbi/lib/sbi/sbi_unpriv.o: /host/tools/opensbi/lib/sbi/sbi_unpriv.c \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_bitops.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi/sbi_hart.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/sbi_trap.h \
+ /host/tools/opensbi/include/sbi/sbi_unpriv.h

@@ -1,0 +1,6 @@
+/host/build-security_monitor/opensbi/lib/utils/serial/sifive-uart.o: /host/tools/opensbi/lib/utils/serial/sifive-uart.c \
+ /host/tools/opensbi/include/sbi/riscv_io.h \
+ /host/tools/opensbi/include/sbi/riscv_barrier.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi/sbi_console.h \
+ /host/tools/opensbi/include/sbi_utils/serial/sifive-uart.h

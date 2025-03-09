@@ -1,0 +1,9 @@
+/host/build-security_monitor/opensbi/platform/generic/firmware/fw_dynamic.o: /host/tools/opensbi/firmware/fw_dynamic.S \
+ /host/tools/opensbi/include/sbi/fw_dynamic.h \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/firmware/fw_base.S \
+ /host/tools/opensbi/include/sbi/sbi_platform.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/sbi_trap.h

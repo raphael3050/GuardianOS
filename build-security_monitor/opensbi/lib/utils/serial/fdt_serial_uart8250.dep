@@ -1,0 +1,6 @@
+/host/build-security_monitor/opensbi/lib/utils/serial/fdt_serial_uart8250.o: \
+ /host/tools/opensbi/lib/utils/serial/fdt_serial_uart8250.c \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi_utils/serial/fdt_serial.h \
+ /host/tools/opensbi/include/sbi_utils/serial/uart8250.h

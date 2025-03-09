@@ -1,0 +1,5 @@
+/host/build-security_monitor/opensbi/lib/sbi/sbi_expected_trap.o: /host/tools/opensbi/lib/sbi/sbi_expected_trap.S \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_trap.h

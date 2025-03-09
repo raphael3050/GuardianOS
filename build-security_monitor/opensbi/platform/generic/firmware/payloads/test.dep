@@ -1,0 +1,5 @@
+/host/build-security_monitor/opensbi/platform/generic/firmware/payloads/test_head.o: /host/tools/opensbi/firmware/payloads/test_head.S \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h
+/host/build-security_monitor/opensbi/platform/generic/firmware/payloads/test_main.o: /host/tools/opensbi/firmware/payloads/test_main.c \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h

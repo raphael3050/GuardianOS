@@ -1,0 +1,136 @@
+The target system is: Generic -  - seL4CPU
+The host system is: Linux - 6.10.14-linuxkit - aarch64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/riscv64-unknown-elf-gcc 
+Build flags: -march=rv64imac;-mabi=lp64
+Id flags: -c 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+
+The C compiler identification is GNU, found in "/host/build-security_monitor/CMakeFiles/3.18.4/CompilerIdC/CMakeCCompilerId.o"
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /host/build-security_monitor/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja cmTC_092ce && [1/2] Building C object CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj
+Using built-in specs.
+COLLECT_GCC=/usr/bin/riscv64-unknown-elf-gcc
+Target: riscv64-unknown-elf
+Configured with: ../configure --build=aarch64-linux-gnu --prefix=/usr --includedir='/usr/include' --mandir='/usr/share/man' --infodir='/usr/share/info' --sysconfdir=/etc --localstatedir=/var --disable-silent-rules --libdir='/usr/lib/aarch64-linux-gnu' --libexecdir='/usr/lib/aarch64-linux-gnu' --disable-maintainer-mode --disable-dependency-tracking --target=riscv64-unknown-elf --prefix=/usr --infodir=/usr/share/doc/gcc-riscv64-unknown-elf/info --mandir=/usr/share/man --htmldir=/usr/share/doc/gcc-riscv64-unknown-elf/html --pdfdir=/usr/share/doc/gcc-riscv64-unknown-elf/pdf --bindir=/usr/bin --libexecdir=/usr/lib --libdir=/usr/lib --with-pkgversion= --disable-shared --disable-threads --enable-languages=c,c++ --enable-tls --with-newlib --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --with-system-zlib --enable-checking=yes --enable-multilib --with-abi=lp64d --disable-libstdcxx-pch --disable-libstdcxx --disable-fixinc --with-arch=rv64imafdc --with-gnu-as --with-gnu-ld --with-as=/usr/lib/riscv64-unknown-elf/bin/as --with-ld=/usr/lib/riscv64-unknown-elf/bin/ld AR_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/ar AS_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/as NM_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/nm LD_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/ld OBJDUMP_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/objdump RANLIB_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/ranlib READELF_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/readelf STRIP_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/strip CFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' CPPFLAGS='-Wdate-time -D_FORTIFY_SOURCE=2' CXXFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' FCFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' FFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' GCJFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' LDFLAGS='-Wl,-z,relro -Wl,-z,now' OBJCFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' OBJCXXFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' 'CFLAGS_FOR_TARGET=-Os -mcmodel=medany' 'CXXFLAGS_FOR_TARGET=-Os -mcmodel=medany'
+Thread model: single
+gcc version 8.3.0 () 
+COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-march=rv64imac' '-mabi=lp64' '-v' '-c' '-o' 'CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj'
+ /usr/lib/gcc/riscv64-unknown-elf/8.3.0/cc1 -quiet -v -imultilib rv64imac/lp64 -isysroot /host/build-security_monitor/CMakeFiles/CMakeTmp /usr/share/cmake-3.18/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -march=rv64imac -mabi=lp64 -auxbase-strip CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj -version -fdiagnostics-color=always -o /tmp/ccDuPJGY.s
+GNU C17 () version 8.3.0 (riscv64-unknown-elf)
+	compiled by GNU C version 9.2.1 20190909, GMP version 6.1.2, MPFR version 4.0.2, MPC version 1.1.0, isl version none
+warning: GMP header version 6.1.2 differs from library version 6.2.1.
+warning: MPFR header version 4.0.2 differs from library version 4.1.0.
+warning: MPC header version 1.1.0 differs from library version 1.2.0.
+GGC heuristics: --param ggc-min-expand=30 --param ggc-min-heapsize=4096
+ignoring nonexistent directory "/usr/lib/gcc/riscv64-unknown-elf/8.3.0/../../../../riscv64-unknown-elf/sys-include"
+ignoring nonexistent directory "/usr/lib/gcc/riscv64-unknown-elf/8.3.0/../../../../riscv64-unknown-elf/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/lib/gcc/riscv64-unknown-elf/8.3.0/include
+ /usr/lib/gcc/riscv64-unknown-elf/8.3.0/include-fixed
+End of search list.
+GNU C17 () version 8.3.0 (riscv64-unknown-elf)
+	compiled by GNU C version 9.2.1 20190909, GMP version 6.1.2, MPFR version 4.0.2, MPC version 1.1.0, isl version none
+warning: GMP header version 6.1.2 differs from library version 6.2.1.
+warning: MPFR header version 4.0.2 differs from library version 4.1.0.
+warning: MPC header version 1.1.0 differs from library version 1.2.0.
+GGC heuristics: --param ggc-min-expand=30 --param ggc-min-heapsize=4096
+Compiler executable checksum: e24ce3446a81df48e7654571c62577b2
+COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-march=rv64imac' '-mabi=lp64' '-v' '-c' '-o' 'CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj'
+ /usr/lib/riscv64-unknown-elf/bin/as -v --traditional-format -march=rv64imac -mabi=lp64 -o CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj /tmp/ccDuPJGY.s
+GNU assembler version 2.32 (riscv64-unknown-elf) using BFD version () 2.32
+COMPILER_PATH=/usr/lib/gcc/riscv64-unknown-elf/8.3.0/:/usr/lib/gcc/riscv64-unknown-elf/8.3.0/:/usr/lib/gcc/riscv64-unknown-elf/:/usr/lib/gcc/riscv64-unknown-elf/8.3.0/:/usr/lib/gcc/riscv64-unknown-elf/
+LIBRARY_PATH=/usr/lib/gcc/riscv64-unknown-elf/8.3.0/rv64imac/lp64/:/usr/lib/gcc/riscv64-unknown-elf/8.3.0/
+COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-march=rv64imac' '-mabi=lp64' '-v' '-c' '-o' 'CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj'
+[2/2] Linking C static library libcmTC_092ce.a
+
+
+
+Parsed C implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include]
+    add: [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include-fixed]
+  end of search list found
+  collapse include dir [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include] ==> [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include]
+  collapse include dir [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include-fixed] ==> [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include-fixed]
+  implicit include dirs: [/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include;/usr/lib/gcc/riscv64-unknown-elf/8.3.0/include-fixed]
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(riscv64-unknown-elf-ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /host/build-security_monitor/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):/usr/bin/ninja cmTC_092ce && [1/2] Building C object CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/riscv64-unknown-elf-gcc]
+  ignore line: [Target: riscv64-unknown-elf]
+  ignore line: [Configured with: ../configure --build=aarch64-linux-gnu --prefix=/usr --includedir='/usr/include' --mandir='/usr/share/man' --infodir='/usr/share/info' --sysconfdir=/etc --localstatedir=/var --disable-silent-rules --libdir='/usr/lib/aarch64-linux-gnu' --libexecdir='/usr/lib/aarch64-linux-gnu' --disable-maintainer-mode --disable-dependency-tracking --target=riscv64-unknown-elf --prefix=/usr --infodir=/usr/share/doc/gcc-riscv64-unknown-elf/info --mandir=/usr/share/man --htmldir=/usr/share/doc/gcc-riscv64-unknown-elf/html --pdfdir=/usr/share/doc/gcc-riscv64-unknown-elf/pdf --bindir=/usr/bin --libexecdir=/usr/lib --libdir=/usr/lib --with-pkgversion= --disable-shared --disable-threads --enable-languages=c,c++ --enable-tls --with-newlib --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --with-system-zlib --enable-checking=yes --enable-multilib --with-abi=lp64d --disable-libstdcxx-pch --disable-libstdcxx --disable-fixinc --with-arch=rv64imafdc --with-gnu-as --with-gnu-ld --with-as=/usr/lib/riscv64-unknown-elf/bin/as --with-ld=/usr/lib/riscv64-unknown-elf/bin/ld AR_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/ar AS_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/as NM_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/nm LD_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/ld OBJDUMP_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/objdump RANLIB_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/ranlib READELF_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/readelf STRIP_FOR_TARGET=/usr/lib/riscv64-unknown-elf/bin/strip CFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' CPPFLAGS='-Wdate-time -D_FORTIFY_SOURCE=2' CXXFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' FCFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' FFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' GCJFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' LDFLAGS='-Wl,-z,relro -Wl,-z,now' OBJCFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' OBJCXXFLAGS='-g -O2 -fdebug-prefix-map=/build/gcc-riscv64-unknown-elf-Buc84t/gcc-riscv64-unknown-elf-8.3.0.2019.08+dfsg=. -fstack-protector-strong' 'CFLAGS_FOR_TARGET=-Os -mcmodel=medany' 'CXXFLAGS_FOR_TARGET=-Os -mcmodel=medany']
+  ignore line: [Thread model: single]
+  ignore line: [gcc version 8.3.0 () ]
+  ignore line: [COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-march=rv64imac' '-mabi=lp64' '-v' '-c' '-o' 'CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj']
+  ignore line: [ /usr/lib/gcc/riscv64-unknown-elf/8.3.0/cc1 -quiet -v -imultilib rv64imac/lp64 -isysroot /host/build-security_monitor/CMakeFiles/CMakeTmp /usr/share/cmake-3.18/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -march=rv64imac -mabi=lp64 -auxbase-strip CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj -version -fdiagnostics-color=always -o /tmp/ccDuPJGY.s]
+  ignore line: [GNU C17 () version 8.3.0 (riscv64-unknown-elf)]
+  ignore line: [	compiled by GNU C version 9.2.1 20190909  GMP version 6.1.2  MPFR version 4.0.2  MPC version 1.1.0  isl version none]
+  ignore line: [warning: GMP header version 6.1.2 differs from library version 6.2.1.]
+  ignore line: [warning: MPFR header version 4.0.2 differs from library version 4.1.0.]
+  ignore line: [warning: MPC header version 1.1.0 differs from library version 1.2.0.]
+  ignore line: [GGC heuristics: --param ggc-min-expand=30 --param ggc-min-heapsize=4096]
+  ignore line: [ignoring nonexistent directory "/usr/lib/gcc/riscv64-unknown-elf/8.3.0/../../../../riscv64-unknown-elf/sys-include"]
+  ignore line: [ignoring nonexistent directory "/usr/lib/gcc/riscv64-unknown-elf/8.3.0/../../../../riscv64-unknown-elf/include"]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ /usr/lib/gcc/riscv64-unknown-elf/8.3.0/include]
+  ignore line: [ /usr/lib/gcc/riscv64-unknown-elf/8.3.0/include-fixed]
+  ignore line: [End of search list.]
+  ignore line: [GNU C17 () version 8.3.0 (riscv64-unknown-elf)]
+  ignore line: [	compiled by GNU C version 9.2.1 20190909  GMP version 6.1.2  MPFR version 4.0.2  MPC version 1.1.0  isl version none]
+  ignore line: [warning: GMP header version 6.1.2 differs from library version 6.2.1.]
+  ignore line: [warning: MPFR header version 4.0.2 differs from library version 4.1.0.]
+  ignore line: [warning: MPC header version 1.1.0 differs from library version 1.2.0.]
+  ignore line: [GGC heuristics: --param ggc-min-expand=30 --param ggc-min-heapsize=4096]
+  ignore line: [Compiler executable checksum: e24ce3446a81df48e7654571c62577b2]
+  ignore line: [COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-march=rv64imac' '-mabi=lp64' '-v' '-c' '-o' 'CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj']
+  ignore line: [ /usr/lib/riscv64-unknown-elf/bin/as -v --traditional-format -march=rv64imac -mabi=lp64 -o CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj /tmp/ccDuPJGY.s]
+  ignore line: [GNU assembler version 2.32 (riscv64-unknown-elf) using BFD version () 2.32]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/riscv64-unknown-elf/8.3.0/:/usr/lib/gcc/riscv64-unknown-elf/8.3.0/:/usr/lib/gcc/riscv64-unknown-elf/:/usr/lib/gcc/riscv64-unknown-elf/8.3.0/:/usr/lib/gcc/riscv64-unknown-elf/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/riscv64-unknown-elf/8.3.0/rv64imac/lp64/:/usr/lib/gcc/riscv64-unknown-elf/8.3.0/]
+  ignore line: [COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-march=rv64imac' '-mabi=lp64' '-v' '-c' '-o' 'CMakeFiles/cmTC_092ce.dir/CMakeCCompilerABI.c.obj']
+  ignore line: [[2/2] Linking C static library libcmTC_092ce.a]
+  ignore line: []
+  ignore line: []
+  implicit libs: []
+  implicit dirs: []
+  implicit fwks: []
+
+
+Checking whether the ASM compiler is GNU using "--version" matched "(GNU assembler)|(GCC)|(Free Software Foundation)":
+riscv64-unknown-elf-gcc () 8.3.0
+Copyright (C) 2018 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Performing C SOURCE FILE Test compiler_arch_test succeeded with the following output:
+Change Dir: /host/build-security_monitor/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja cmTC_ec5bf && [1/2] Building C object CMakeFiles/cmTC_ec5bf.dir/src.c.obj
+[2/2] Linking C static library libcmTC_ec5bf.a
+
+
+Source file was:
+
+#if __riscv_xlen == 64
+    int main() {return 0;}
+#else
+#error Invalid arch
+#endif
+    

@@ -1,0 +1,26 @@
+/host/build-security_monitor/opensbi/platform/generic/platform.o: /host/tools/opensbi/platform/generic/platform.c \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt.h \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt_env.h \
+ /host/tools/opensbi/include/sbi/sbi_string.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/lib/utils/libfdt/fdt.h \
+ /host/tools/opensbi/platform/generic/include/platform_override.h \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_hartmask.h \
+ /host/tools/opensbi/include/sbi/sbi_bitmap.h \
+ /host/tools/opensbi/include/sbi/sbi_bitops.h \
+ /host/tools/opensbi/include/sbi/sbi_platform.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h \
+ /host/tools/opensbi/include/sbi/sbi_error.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/sbi_version.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_domain.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_fixup.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /host/tools/opensbi/include/sbi_utils/irqchip/fdt_irqchip.h \
+ /host/tools/opensbi/include/sbi_utils/serial/fdt_serial.h \
+ /host/tools/opensbi/include/sbi_utils/timer/fdt_timer.h \
+ /host/tools/opensbi/include/sbi_utils/ipi/fdt_ipi.h \
+ /host/tools/opensbi/include/sbi_utils/reset/fdt_reset.h

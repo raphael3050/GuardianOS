@@ -1,0 +1,8 @@
+/host/build-security_monitor/opensbi/lib/utils/libfdt/fdt_rw.o: /host/tools/opensbi/lib/utils/libfdt/fdt_rw.c \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt_env.h \
+ /host/tools/opensbi/include/sbi/sbi_string.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/lib/utils/libfdt/fdt.h \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt.h \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt_env.h \
+ /host/tools/opensbi/lib/utils/libfdt/libfdt_internal.h

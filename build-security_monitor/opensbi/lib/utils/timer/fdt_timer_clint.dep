@@ -1,0 +1,7 @@
+/host/build-security_monitor/opensbi/lib/utils/timer/fdt_timer_clint.o: /host/tools/opensbi/lib/utils/timer/fdt_timer_clint.c \
+ /host/tools/opensbi/include/sbi/sbi_error.h \
+ /host/tools/opensbi/include/sbi/sbi_ecall_interface.h \
+ /host/tools/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /host/tools/opensbi/include/sbi/sbi_types.h \
+ /host/tools/opensbi/include/sbi_utils/timer/fdt_timer.h \
+ /host/tools/opensbi/include/sbi_utils/sys/clint.h

@@ -1,0 +1,8 @@
+/host/build-security_monitor/opensbi/platform/generic/firmware/fw_payload.o: /host/tools/opensbi/firmware/fw_payload.S \
+ /host/tools/opensbi/firmware/fw_base.S \
+ /host/tools/opensbi/include/sbi/riscv_asm.h \
+ /host/tools/opensbi/include/sbi/riscv_encoding.h \
+ /host/tools/opensbi/include/sbi/sbi_const.h \
+ /host/tools/opensbi/include/sbi/sbi_platform.h \
+ /host/tools/opensbi/include/sbi/sbi_scratch.h \
+ /host/tools/opensbi/include/sbi/sbi_trap.h
