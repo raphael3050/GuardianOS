@@ -1,0 +1,513 @@
+diff --git a/disas/riscv.c b/disas/riscv.c
+index 9c1e332dde..2b6c6d28ca 100644
+--- a/disas/riscv.c
++++ b/disas/riscv.c
+@@ -2530,6 +2530,8 @@ static const char *csr_name(int csrno)
+     case 0x0f12: return "marchid";
+     case 0x0f13: return "mimpid";
+     case 0x0f14: return "mhartid";
++
++    case 0x06c0: return "hguardianid";
+     default: return NULL;
+     }
+ }
+diff --git a/hw/misc/Kconfig b/hw/misc/Kconfig
+index 8f9ce2f68c..178e521a6f 100644
+--- a/hw/misc/Kconfig
++++ b/hw/misc/Kconfig
+@@ -220,4 +220,21 @@ config IOSB
+ config XLNX_VERSAL_TRNG
+     bool
+ 
++config MY_ORACLE
++    bool
++    default y
++    depends on PCI
++
++config MY_IP_CRYPTO
++    bool
++    default y
++    depends on PCI && MY_ORACLE
++
++config MY_IP
++    bool
++    default y
++    depends on PCI && MY_ORACLE && MY_IP_CRYPTO
++
++
++
+ source macio/Kconfig
+diff --git a/hw/misc/meson.build b/hw/misc/meson.build
+index 55f493521b..8b900af5ca 100644
+--- a/hw/misc/meson.build
++++ b/hw/misc/meson.build
+@@ -154,3 +154,13 @@ system_ss.add(when: 'CONFIG_SBSA_REF', if_true: files('sbsa_ec.c'))
+ 
+ # HPPA devices
+ system_ss.add(when: 'CONFIG_LASI', if_true: files('lasi.c'))
++
++# GuardianOS Security Oracle
++system_ss.add(when: 'CONFIG_MY_ORACLE', if_true: files('security_oracle.c'))
++
++# GuardianOS IP's
++system_ss.add(when: 'CONFIG_MY_IP_CRYPTO', if_true: files('my_ip_crypto.c'))
++system_ss.add(when: 'CONFIG_MY_IP', if_true: files('my_ip.c'))
++
++
++
+diff --git a/hw/misc/my_ip.c b/hw/misc/my_ip.c
+new file mode 100644
+index 0000000000..3a2fd3420d
+--- /dev/null
++++ b/hw/misc/my_ip.c
+@@ -0,0 +1,253 @@
++#include "qemu/osdep.h"
++#include "hw/pci/msi.h"
++#include "hw/pci/pci.h"
++#include "qom/object.h"
++#include "exec/memory.h"
++
++#define TYPE_MY_IP "my_ip"
++#define MY_IP(obj) OBJECT_CHECK(my_ip, (obj), TYPE_MY_IP)
++
++#define TYPE_MY_ORACLE "security_oracle"
++#define MY_ORACLE(obj) OBJECT_CHECK(my_oracle, (obj), TYPE_MY_ORACLE)
++
++typedef struct {
++    PCIDevice parent_obj;
++    uint32_t seed_register;
++    MemoryRegion mmio;
++    MemoryRegion bar0_region;
++    uint64_t bar0_addr;
++    bool bar0_mapped;
++    PCIDevice *oracle_dev;
++    PCIDevice *crypto_dev; 
++} my_ip;
++
++
++static void pci_wrapper_send_read(MemoryRegion *mr, hwaddr addr, uint64_t *val, MemOp op) {
++    MemTxAttrs attrs = { .thread_id = 0xcafe };
++    memory_region_dispatch_read(mr, addr, val, op, attrs);
++}
++
++
++static bool my_ip_check_access(my_ip *s, uint32_t thread_id) {
++    if (!s->oracle_dev) {
++        printf("[QEMU] Oracle device not found! Denying access.\n");
++        return false;
++    }
++
++    // Device ID de my_ip
++    uint32_t device_id = 0xcafe;
++
++    // Adresse où chercher dans security_oracle (ex: concaténation de source + destination)
++    uint64_t oracle_addr = ((uint64_t)thread_id << 32) | device_id;
++
++    MemoryRegion *oracle_mr = s->oracle_dev->io_regions[0].memory;
++
++    uint64_t permission64;
++    pci_wrapper_send_read(oracle_mr, oracle_addr, &permission64, MO_8);
++    uint8_t permission = permission64 & 0xFF;  // Extraire les 8 bits de permissions
++
++    printf("[QEMU] Checked access: thread_id=0x%x -> device_id=0x%x : %s (Permission: 0x%x)\n",
++           thread_id, device_id, (permission ? "ALLOWED" : "DENIED"), permission);
++
++    return permission != 0;
++}
++
++
++static uint64_t my_ip_read_crypto(my_ip *s, hwaddr addr) {
++    if (!s->crypto_dev) {
++        printf("[QEMU] crypto_device not found! Cannot read.\n");
++        return 0;
++    }
++
++    MemoryRegion *crypto_mr = s->crypto_dev->io_regions[0].memory;
++    printf("[QEMU] Trying to read crypto_device at addr 0x%lx (MemoryRegion at %p)\n", addr, crypto_mr);
++
++    uint64_t data;
++    pci_wrapper_send_read(crypto_mr, addr, &data, MO_8);
++    printf("[QEMU] my_ip read from crypto_device at 0x%lx: 0x%lx\n", addr, data);
++    return data;
++}
++
++
++/**
++ * Fonction de lecture du périphérique
++ */
++ static MemTxResult mmio_read_with_attrs(void *opaque, hwaddr addr, uint64_t *data, unsigned size, MemTxAttrs attrs) {
++    my_ip *s = (my_ip *)opaque;
++    uint32_t id = attrs.thread_id;
++
++    printf("    [QEMU] READ with ID %d\n", id);
++
++    switch (addr) {
++        case 0x0:  // Lire une valeur du périphérique crypto
++            *data = my_ip_read_crypto(s, 0x00);
++            return MEMTX_OK;
++        default:
++            *data = 0x0;
++            return MEMTX_DECODE_ERROR;
++    }
++}
++
++
++/**
++ * Fonction d'écriture du périphérique
++ */
++static MemTxResult mmio_write_with_attrs(void *opaque, hwaddr addr, uint64_t data, unsigned size, MemTxAttrs attrs) {
++    uint32_t id = attrs.thread_id;
++    printf("    [QEMU] WRITE with ID %d\n", id);
++    my_ip *s = (my_ip *)opaque;
++
++    switch (addr) {
++        case 0x4:  // SEED register
++            s->seed_register = (uint32_t)data;
++            srand(s->seed_register);
++            return MEMTX_OK;
++        default:
++            return MEMTX_DECODE_ERROR; // Adresse invalide
++    }
++}
++
++/**
++ * Wrapper pour intercepter les lectures et valider l'ID via my_oracle
++ */
++static MemTxResult pci_read_wrapper(void *opaque, hwaddr addr, uint64_t *val, unsigned size, MemTxAttrs attrs) {
++    uint32_t thread_id = attrs.thread_id;
++    my_ip *s = (my_ip *)opaque;
++
++    printf("    [QEMU Wrapper] PCI READ: thread_id=0x%08x\n", thread_id);
++
++    if (!my_ip_check_access(s, thread_id)) {
++        printf("[QEMU Wrapper] Access denied for thread_id=%d!\n", thread_id);
++        return MEMTX_DECODE_ERROR;
++    }
++
++    // Rediriger vers la fonction de lecture réelle
++    return mmio_read_with_attrs(opaque, addr, val, size, attrs);
++}
++
++/**
++ * Wrapper pour intercepter les écritures et valider l'ID via my_oracle
++ */
++static MemTxResult pci_write_wrapper(void *opaque, hwaddr addr, uint64_t val, unsigned size, MemTxAttrs attrs) {
++    uint32_t thread_id = attrs.thread_id;
++    my_ip *s = (my_ip *)opaque;
++
++    printf("    [QEMU Wrapper] PCI WRITE: thread_id=%d, Value=0x%lx\n", thread_id, val);
++
++    if (!my_ip_check_access(s, thread_id)) {
++        printf("[QEMU Wrapper] Access denied for thread_id=%d!\n", thread_id);
++        return MEMTX_DECODE_ERROR;
++    }
++
++    // Rediriger vers la fonction d'écriture réelle
++    return mmio_write_with_attrs(opaque, addr, val, size, attrs);
++}
++
++
++
++static const MemoryRegionOps my_ip_ops = {
++    .read_with_attrs = pci_read_wrapper,
++    .write_with_attrs = pci_write_wrapper,
++    .endianness = DEVICE_LITTLE_ENDIAN,
++};
++
++/**
++ * Gestion de la configuration PCI pour BAR0
++ */
++static void my_ip_pci_write_config(PCIDevice *pdev, uint32_t addr, uint32_t val, int len) {
++    my_ip *s = MY_IP(pdev);
++
++    if (addr == PCI_BASE_ADDRESS_0) {
++        uint64_t new_bar0_addr = val & PCI_BASE_ADDRESS_MEM_MASK;
++
++        printf("[QEMU-my_ip] Updating BAR0 address to: 0x%" PRIx64 "\n", new_bar0_addr);
++
++        if (s->bar0_mapped) {
++            memory_region_del_subregion(get_system_memory(), &s->bar0_region);
++        }
++
++        s->bar0_addr = new_bar0_addr;
++
++        memory_region_init_io(&s->bar0_region, OBJECT(s), &my_ip_ops, s, "my_ip_bar0", 4096);
++        memory_region_add_subregion(get_system_memory(), new_bar0_addr, &s->bar0_region);
++
++        s->bar0_mapped = true;
++    }
++
++    pci_default_write_config(pdev, addr, val, len);
++}
++
++/**
++ * Fonction de réalisation du périphérique
++ */
++ static void my_ip_realize(PCIDevice *pdev, Error **errp) {
++    printf("[QEMU] Realizing my_ip device\n");
++    my_ip *s = MY_IP(pdev);
++
++    memory_region_init_io(&s->bar0_region, OBJECT(s), &my_ip_ops, s, "my_ip_bar0", 4096);
++    s->bar0_mapped = false;
++    pci_register_bar(pdev, 0, PCI_BASE_ADDRESS_SPACE_MEMORY, &s->bar0_region);
++
++    s->oracle_dev = NULL;
++    s->crypto_dev = NULL;
++
++    Object *oracle_obj = object_resolve_path("/machine/peripheral-anon/device[0]", NULL);
++    if (oracle_obj) {
++        s->oracle_dev = PCI_DEVICE(oracle_obj);
++        printf("[QEMU] Found my_oracle device for security checks.\n");
++    } else {
++        printf("[QEMU] No my_oracle device found! Security checks will fail.\n");
++    }
++
++    // Récupérer `crypto_device`
++    Object *crypto_obj = object_resolve_path("/machine/peripheral-anon/device[1]", NULL);
++    if (crypto_obj) {
++        s->crypto_dev = PCI_DEVICE(crypto_obj);
++        printf("[QEMU] Found crypto_device for interactions.\n");
++    } else {
++        printf("[QEMU] No crypto_device found! Interactions will fail.\n");
++    }
++}
++
++
++
++/**
++ * Initialisation de la classe PCI
++ */
++static void my_ip_class_init(ObjectClass *class, void *data) {
++    printf("[QEMU] Initializing my_ip class\n");
++    DeviceClass *dc = DEVICE_CLASS(class);
++    PCIDeviceClass *k = PCI_DEVICE_CLASS(class);
++
++    k->realize = my_ip_realize;
++    k->vendor_id = PCI_VENDOR_ID_QEMU;
++    k->device_id = 0xcafe;
++    k->revision = 0x10;
++    k->class_id = PCI_CLASS_OTHERS;
++    k->config_write = my_ip_pci_write_config;
++
++    set_bit(DEVICE_CATEGORY_MISC, dc->categories);
++
++}
++
++/**
++ * Enregistrement du périphérique PCI
++ */
++static void my_ip_register_types(void) {
++    static InterfaceInfo interfaces[] = {
++        { INTERFACE_CONVENTIONAL_PCI_DEVICE },
++        { },
++    };
++
++    static const TypeInfo my_ip_info = {
++        .name = TYPE_MY_IP,
++        .parent = TYPE_PCI_DEVICE,
++        .instance_size = sizeof(my_ip),
++        .class_init    = my_ip_class_init,
++        .interfaces = interfaces,
++    };
++
++    type_register_static(&my_ip_info);
++}
++
++type_init(my_ip_register_types)
+diff --git a/include/exec/memattrs.h b/include/exec/memattrs.h
+index e27c18f3dc..85fe6ac64b 100644
+--- a/include/exec/memattrs.h
++++ b/include/exec/memattrs.h
+@@ -57,6 +57,11 @@ typedef struct MemTxAttrs {
+      * PID (PCI PASID) support: Limited to 8 bits process identifier.
+      */
+     unsigned int pid:8;
++
++    /*
++     * GuardianOS Thread id (for GuardianOS only) 
++     */
++     uint32_t thread_id;
+ } MemTxAttrs;
+ 
+ /* Bus masters which don't specify any attributes will get this,
+diff --git a/include/hw/pci/pci.h b/include/hw/pci/pci.h
+index 4002bbeebd..07981e7fa9 100644
+--- a/include/hw/pci/pci.h
++++ b/include/hw/pci/pci.h
+@@ -57,6 +57,10 @@ extern bool pci_available;
+ #define PCI_DEVICE_ID_QEMU_VGA           0x1111
+ #define PCI_DEVICE_ID_QEMU_IPMI          0x1112
+ 
++
++/* GuardianOS devices */
++#define PCI_VENDOR_ID_GUARDIANOS_SM      0x1d0f
++
+ /* VMWare (0x15ad) */
+ #define PCI_VENDOR_ID_VMWARE             0x15ad
+ #define PCI_DEVICE_ID_VMWARE_SVGA2       0x0405
+diff --git a/system/memory.c b/system/memory.c
+index b17b5538ff..2a0f6287fe 100644
+--- a/system/memory.c
++++ b/system/memory.c
+@@ -35,6 +35,9 @@
+ #include "migration/vmstate.h"
+ #include "exec/address-spaces.h"
+ 
++#include "hw/pci/msi.h"
++
++
+ //#define DEBUG_UNASSIGNED
+ 
+ static unsigned memory_region_transaction_depth;
+@@ -1478,6 +1481,27 @@ MemTxResult memory_region_dispatch_read(MemoryRegion *mr,
+     unsigned size = memop_size(op);
+     MemTxResult r;
+ 
++    if (mr->owner) {
++        //Object *owner = OBJECT(mr->owner);
++
++        if(current_cpu){
++             /* L'accès mémoire provient d'un CPU */
++             // print the attrs id 
++             if(attrs.thread_id == 0){
++                 RISCVCPU *cpu = RISCV_CPU(current_cpu);
++                 if (cpu) {
++                     attrs.thread_id = cpu->env.hguardianid;
++                 } else {
++                     printf("[ERROR] : CSR read failed from qemu, thread_id can't be set\n");
++                     return MEMTX_DECODE_ERROR;
++                 }
++             }else{
++                printf("memory_region_dispatch_read: %d\n", attrs.thread_id);
++             }
++            
++        }
++    }
++
+     if (mr->alias) {
+         return memory_region_dispatch_read(mr->alias,
+                                            mr->alias_offset + addr,
+@@ -1493,6 +1517,8 @@ MemTxResult memory_region_dispatch_read(MemoryRegion *mr,
+     return r;
+ }
+ 
++
++
+ /* Return true if an eventfd was signalled */
+ static bool memory_region_dispatch_write_eventfds(MemoryRegion *mr,
+                                                     hwaddr addr,
+@@ -1527,6 +1553,20 @@ MemTxResult memory_region_dispatch_write(MemoryRegion *mr,
+ {
+     unsigned size = memop_size(op);
+ 
++    /* guardianos : set the id of the current world before dispatching the request*/
++    if (mr->owner && object_dynamic_cast(OBJECT(mr->owner), TYPE_PCI_DEVICE)) {
++        //printf("memory_region_dispatch_write: %s\n", mr->name);
++        RISCVCPU *cpu = RISCV_CPU(current_cpu);
++        if (cpu) {
++            attrs.thread_id = cpu->env.hguardianid; 
++        }else{
++            // raise error, the thread_id cant be set
++            printf("[ERROR] : CSR write failed from qemu, thread_id cant be set\n");
++            return MEMTX_DECODE_ERROR;
++        }
++        
++    }
++    
+     if (mr->alias) {
+         return memory_region_dispatch_write(mr->alias,
+                                             mr->alias_offset + addr,
+diff --git a/target/riscv/cpu.c b/target/riscv/cpu.c
+index b8d5120106..862488ff6d 100644
+--- a/target/riscv/cpu.c
++++ b/target/riscv/cpu.c
+@@ -896,6 +896,8 @@ static void riscv_cpu_dump_state(CPUState *cs, FILE *f, int flags)
+             CSR_SPMMASK,
+             CSR_MPMBASE,
+             CSR_MPMMASK,
++
++            CSR_GUARDIANID,
+         };
+ 
+         for (i = 0; i < ARRAY_SIZE(dump_csrs); ++i) {
+diff --git a/target/riscv/cpu.h b/target/riscv/cpu.h
+index 252fdb8672..c20189c960 100644
+--- a/target/riscv/cpu.h
++++ b/target/riscv/cpu.h
+@@ -243,6 +243,7 @@ struct CPUArchState {
+     target_ulong excp_uw2;
+     /* sw check code for sw check exception */
+     target_ulong sw_check_code;
++
+ #ifdef CONFIG_USER_ONLY
+     uint32_t elf_flags;
+ #endif
+@@ -327,6 +328,8 @@ struct CPUArchState {
+     target_ulong hgeip;
+     uint64_t htimedelta;
+     uint64_t hvien;
++    /* csr_guardianid init (guardianos)*/
++    uint64_t hguardianid;
+ 
+     /*
+      * Bits VSSIP, VSTIP and VSEIP in hvip are maintained in mip. Other bits
+diff --git a/target/riscv/cpu_bits.h b/target/riscv/cpu_bits.h
+index fe4e34c64a..6861fccd3c 100644
+--- a/target/riscv/cpu_bits.h
++++ b/target/riscv/cpu_bits.h
+@@ -366,6 +366,9 @@
+ #define CSR_DPC             0x7b1
+ #define CSR_DSCRATCH        0x7b2
+ 
++/* Custom read/write (S Mode) (GuardianOS)*/
++#define CSR_GUARDIANID      0x5c0
++
+ /* Performance Counters */
+ #define CSR_MHPMCOUNTER3    0xb03
+ #define CSR_MHPMCOUNTER4    0xb04
+diff --git a/target/riscv/csr.c b/target/riscv/csr.c
+index 381cda81f8..80fc964e9a 100644
+--- a/target/riscv/csr.c
++++ b/target/riscv/csr.c
+@@ -4986,6 +4986,30 @@ static RISCVException write_jvt(CPURISCVState *env, int csrno,
+     return RISCV_EXCP_NONE;
+ }
+ 
++
++/* csr_guardianid read&write operations */
++static RISCVException read_guardianid(CPURISCVState *env, int csrno, target_ulong *val) {
++    if (env->priv == PRV_S) {
++        *val = env->hguardianid; 
++        return RISCV_EXCP_NONE; // Pas d'exception en mode S
++    } else {
++        return RISCV_EXCP_ILLEGAL_INST;  // Instruction illégale si pas en mode S
++    }
++}
++
++static RISCVException write_guardianid(CPURISCVState *env, int csrno, target_ulong val) {
++    // Seules les écritures en mode HS sont autorisées
++    if (env->priv != PRV_S) {
++        return RISCV_EXCP_ILLEGAL_INST;  // Instruction illégale si pas en mode S
++    }
++
++    env->hguardianid = val; 
++    return RISCV_EXCP_NONE;  
++}
++
++
++
++
+ /*
+  * Control and Status Register function table
+  * riscv_csr_operations::predicate() must be provided for an implemented CSR
+@@ -5688,5 +5712,10 @@ riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
+     [CSR_SCOUNTOVF]      = { "scountovf", sscofpmf,  read_scountovf,
+                              .min_priv_ver = PRIV_VERSION_1_12_0 },
+ 
++    /* csr_guardianid definition (guardianos)*/
++    [CSR_GUARDIANID]     = { "hguardianid", hmode, read_guardianid,
++                             write_guardianid,
++                             .min_priv_ver = PRIV_VERSION_1_12_0       },
++
+ #endif /* !CONFIG_USER_ONLY */
+ };
