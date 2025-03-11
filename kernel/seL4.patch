@@ -1,0 +1,4550 @@
+diff --git a/.github/workflows/compilation-checks.yml b/.github/workflows/compilation-checks.yml
+index de96211de..f7ef38791 100644
+--- a/.github/workflows/compilation-checks.yml
++++ b/.github/workflows/compilation-checks.yml
+@@ -11,7 +11,6 @@ on:
+     branches:
+       - master
+   pull_request:
+-  workflow_dispatch:
+ 
+ # To reduce the load we cancel any older runs of this workflow for the current
+ # PR. For deployment to the master branch, the workflow will run on each push,
+diff --git a/.github/workflows/cparser.yml b/.github/workflows/cparser.yml
+index 268dda12c..5321d5895 100644
+--- a/.github/workflows/cparser.yml
++++ b/.github/workflows/cparser.yml
+@@ -12,7 +12,6 @@ on:
+   push:
+     branches: [master]
+   pull_request:
+-  workflow_dispatch:
+ 
+ jobs:
+   cparser:
+diff --git a/.github/workflows/hw-tests.yml b/.github/workflows/hw-tests.yml
+deleted file mode 100644
+index a1697654e..000000000
+--- a/.github/workflows/hw-tests.yml
++++ /dev/null
+@@ -1,26 +0,0 @@
+-# Copyright 2024, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: BSD-2-Clause
+-
+-# hardware builds and runs
+-#
+-# See sel4test-hw/builds.yml and sel4bench-hw/builds.yml in the repo
+-# seL4/ci-actions for configs.
+-
+-name: HW
+-
+-on:
+-  # needs PR target for secrets access; guard by requiring label
+-  pull_request_target:
+-    types: [synchronize, labeled]
+-
+-jobs:
+-  sel4test:
+-    name: seL4Test
+-    uses: seL4/ci-actions/.github/workflows/sel4test-hw.yml@master
+-    secrets: inherit
+-
+-  sel4bench:
+-    name: seL4Bench
+-    uses: seL4/ci-actions/.github/workflows/sel4bench-hw.yml@master
+-    secrets: inherit
+diff --git a/.github/workflows/manual.yml b/.github/workflows/manual.yml
+index 177470a89..960fb2300 100644
+--- a/.github/workflows/manual.yml
++++ b/.github/workflows/manual.yml
+@@ -10,7 +10,6 @@ on:
+     branches:
+       - master
+   pull_request:
+-  workflow_dispatch:
+ 
+ jobs:
+   manual:
+diff --git a/.github/workflows/pr.yml b/.github/workflows/pr.yml
+index 0fe9697cc..573f5b7cd 100644
+--- a/.github/workflows/pr.yml
++++ b/.github/workflows/pr.yml
+@@ -6,12 +6,32 @@
+ 
+ name: PR
+ 
+-on: [pull_request, workflow_dispatch]
++on: [pull_request]
+ 
+ jobs:
+-  pr-checks:
+-    name: Checks
+-    uses: seL4/ci-actions/.github/workflows/pr.yml@master
++  gitlint:
++    name: Gitlint
++    runs-on: ubuntu-latest
++    steps:
++    - uses: seL4/ci-actions/gitlint@master
++
++  whitespace:
++    name: 'Trailing Whitespace'
++    runs-on: ubuntu-latest
++    steps:
++    - uses: seL4/ci-actions/git-diff-check@master
++
++  shell:
++    name: 'Portable Shell'
++    runs-on: ubuntu-latest
++    steps:
++    - uses: seL4/ci-actions/bashisms@master
++
++  style:
++    name: Style
++    runs-on: ubuntu-22.04
++    steps:
++    - uses: seL4/ci-actions/style@master
+ 
+   preprocess:
+     name: Preprocess
+diff --git a/.github/workflows/preprocess-deploy.yml b/.github/workflows/preprocess-deploy.yml
+index 145ea9d48..d02721fcb 100644
+--- a/.github/workflows/preprocess-deploy.yml
++++ b/.github/workflows/preprocess-deploy.yml
+@@ -10,7 +10,6 @@ on:
+   push:
+     branches:
+       - master
+-  workflow_dispatch:
+ 
+ jobs:
+   code:
+diff --git a/.github/workflows/push.yml b/.github/workflows/push.yml
+index 6e8feee12..886676ea5 100644
+--- a/.github/workflows/push.yml
++++ b/.github/workflows/push.yml
+@@ -10,9 +10,16 @@ on:
+     branches:
+       - master
+   pull_request:
+-  workflow_dispatch:
+ 
+ jobs:
+-  checks:
+-    name: Checks
+-    uses: seL4/ci-actions/.github/workflows/push.yml@master
++  check:
++    name: License Check
++    runs-on: ubuntu-latest
++    steps:
++    - uses: seL4/ci-actions/license-check@master
++
++  links:
++    name: Links
++    runs-on: ubuntu-latest
++    steps:
++      - uses: seL4/ci-actions/link-check@master
+diff --git a/.github/workflows/sel4bench-pr.yml b/.github/workflows/sel4bench-pr.yml
+new file mode 100644
+index 000000000..5ef9a917a
+--- /dev/null
++++ b/.github/workflows/sel4bench-pr.yml
+@@ -0,0 +1,120 @@
++# Copyright 2022, Proofcraft Pty Ltd
++#
++# SPDX-License-Identifier: BSD-2-Clause
++
++# Build and run sel4bench on pull requests, on label request
++
++name: seL4Bench-HW
++
++on:
++  pull_request_target:
++    types: [opened, reopened, synchronize, labeled]
++
++# downgrade permissions to read-only as you would have in a standard PR action
++permissions:
++  contents: read
++
++# To reduce the load (especiually on the machine queue) we cancel any older runs
++# of this workflow for the current PR. Such runs exist, if there were new pushes
++# to the PR's branch without waiting for the workflow to finish. As a side
++# effect, pushing new commits now becomes a convenient way to cancel all the
++# older runs, e.g. if they are stuck and would only be stopped by the timeout
++# eventually.
++# Note that we could do the concurrency handling at a finer level, and only wrap
++# the actual run on the hardware. But there seems not much gain in letting the
++# older builds run, as these are usually obsolete with new pushes also.
++concurrency:
++  group: ${{ github.workflow }}-pr-${{ github.event.number }}
++  cancel-in-progress: true
++
++jobs:
++  code:
++    name: Freeze Code
++    runs-on: ubuntu-latest
++    if: ${{ github.event_name == 'pull_request_target' &&
++               github.event.action != 'labeled' &&
++               contains(github.event.pull_request.labels.*.name, 'hw-bench') ||
++            github.event_name == 'pull_request_target' &&
++               github.event.action == 'labeled' &&
++               github.event.label.name == 'hw-bench' }}
++    outputs:
++      xml: ${{ steps.repo.outputs.xml }}
++    steps:
++    - id: repo
++      uses: seL4/ci-actions/repo-checkout@master
++      with:
++        manifest_repo: sel4bench-manifest
++        manifest: master.xml
++        sha: ${{ github.event.pull_request.head.sha }}
++
++  build:
++    name: Build
++    needs: code
++    runs-on: ubuntu-latest
++    strategy:
++      fail-fast: false
++      matrix:
++        march: [armv7a, armv8a, nehalem, rv64imac]
++    steps:
++    - name: Build
++      uses: seL4/ci-actions/sel4bench@master
++      with:
++        xml: ${{ needs.code.outputs.xml }}
++        march: ${{ matrix.march }}
++    - name: Upload images
++      uses: actions/upload-artifact@v4
++      with:
++        name: images-${{ matrix.march }}
++        path: '*-images.tar.gz'
++
++  hw-run:
++    name: HW Benchmark
++    if: ${{ github.repository_owner == 'seL4' }}
++    runs-on: ubuntu-latest
++    needs: [build]
++    strategy:
++      fail-fast: false
++      matrix:
++        platform:
++          - sabre
++          - imx8mm_evk
++          - odroid_c2
++          - odroid_xu4
++          - am335x_boneblack
++          - tx1
++          - tx2
++          - hifive
++        include:
++          - platform: pc99
++            req: skylake
++          - platform: pc99
++            req: haswell3
++    steps:
++      - name: Get machine queue
++        uses: actions/checkout@v4
++        with:
++          repository: seL4/machine_queue
++          path: machine_queue
++      - name: Get march
++        id: plat
++        uses: seL4/ci-actions/march-of-platform@master
++        with:
++          platform: ${{ matrix.platform }}
++      - name: Download image
++        uses: actions/download-artifact@v4
++        with:
++          name: images-${{ steps.plat.outputs.march }}
++      - name: Run
++        uses: seL4/ci-actions/sel4bench-hw@master
++        with:
++          platform: ${{ matrix.platform }}
++          req: ${{ matrix.req }}
++          index: $${{ strategy.job-index }}
++        env:
++          HW_SSH: ${{ secrets.HW_SSH }}
++      - name: Upload results
++        uses: actions/upload-artifact@v4
++        with:
++          # funky expression below is to work around lack of ternary operator
++          name: sel4bench-results-${{ matrix.platform }}${{ matrix.req != '' && format('-{0}', matrix.req) || '' }}
++          path: '*.json'
+diff --git a/.github/workflows/sel4test-deploy.yml b/.github/workflows/sel4test-deploy.yml
+index 122c365a9..69b1b5a48 100644
+--- a/.github/workflows/sel4test-deploy.yml
++++ b/.github/workflows/sel4test-deploy.yml
+@@ -4,7 +4,7 @@
+ 
+ # Deploy default.xml to sel4test-manifest after successful runs.
+ 
+-name: Deploy
++name: seL4Test
+ 
+ on:
+   push:
+diff --git a/.github/workflows/sel4test-hw.yml b/.github/workflows/sel4test-hw.yml
+new file mode 100644
+index 000000000..feeb20c8c
+--- /dev/null
++++ b/.github/workflows/sel4test-hw.yml
+@@ -0,0 +1,113 @@
++# Copyright 2021, Proofcraft Pty Ltd
++#
++# SPDX-License-Identifier: BSD-2-Clause
++
++# sel4test hardware builds and runs
++#
++# See sel4test-hw/builds.yml in the repo seL4/ci-actions for configs.
++
++name: seL4Test-HW
++
++on:
++  # needs PR target for secrets access; guard by requiring label
++  pull_request_target:
++    types: [opened, reopened, synchronize, labeled]
++
++# downgrade permissions to read-only as you would have in a standard PR action
++permissions:
++  contents: read
++
++# To reduce the load (especiually on the machine queue) we cancel any older runs
++# of this workflow for the current PR. Such runs exist, if there were new pushes
++# to the PR's branch without waiting for the workflow to finish. As a side
++# effect, pushing new commits now becomes a convenient way to cancel all the
++# older runs, e.g. if they are stuck and would only be stopped by the timeout
++# eventually.
++# Note that we could do the concurrency handling at a finer level, and only wrap
++# the actual run on the hardware. But there seems not much gain in letting the
++# older builds run, as these are usually obsolete with new pushes also.
++concurrency:
++  group: ${{ github.workflow }}-pr-${{ github.event.number }}
++  cancel-in-progress: true
++
++jobs:
++  hw-build:
++    name: HW Build
++    runs-on: ubuntu-latest
++    if: ${{ github.event_name == 'push' ||
++            github.event_name == 'pull_request_target' &&
++              github.event.action != 'labeled' &&
++              (contains(github.event.pull_request.labels.*.name, 'hw-build') ||
++               contains(github.event.pull_request.labels.*.name, 'hw-test')) ||
++            github.event_name == 'pull_request_target' &&
++              github.event.action == 'labeled' &&
++              (github.event.label.name == 'hw-build' ||
++               github.event.label.name == 'hw-test') }}
++    strategy:
++      fail-fast: false
++      matrix:
++        # There is no "rv32imac" hardware yet.
++        march: [armv7a, armv8a, nehalem, rv64imac]
++        compiler: [gcc, clang]
++    steps:
++    - name: Build
++      uses: seL4/ci-actions/sel4test-hw@master
++      with:
++        march: ${{ matrix.march }}
++        compiler: ${{ matrix.compiler }}
++        sha: ${{ github.event.pull_request.head.sha }}
++    - name: Upload images
++      uses: actions/upload-artifact@v4
++      with:
++        name: images-${{ matrix.march }}-${{ matrix.compiler }}
++        path: '*-images.tar.gz'
++    - name: Upload kernel.elf files
++      uses: actions/upload-artifact@v4
++      with:
++        name: kernel.elf-${{ matrix.march }}-${{ matrix.compiler }}
++        path: '*-kernel.elf'
++
++  the_matrix:
++    name: Matrix
++    needs: hw-build
++    runs-on: ubuntu-latest
++    outputs:
++      matrix: ${{ steps.matrix.outputs.matrix }}
++    steps:
++    - id: matrix
++      uses: seL4/ci-actions/sel4test-hw-matrix@master
++
++  hw-run:
++    name: HW Run
++    runs-on: ubuntu-latest
++    needs: the_matrix
++    if: ${{ github.repository_owner == 'seL4' &&
++            (github.event_name == 'push' ||
++             github.event_name == 'pull_request_target' &&
++               github.event.action != 'labeled' &&
++               contains(github.event.pull_request.labels.*.name, 'hw-test') ||
++             github.event_name == 'pull_request_target' &&
++               github.event.action == 'labeled' &&
++               github.event.label.name == 'hw-test') }}
++    strategy:
++      fail-fast: false
++      matrix: ${{ fromJson(needs.the_matrix.outputs.matrix) }}
++    steps:
++      - name: Get machine queue
++        uses: actions/checkout@v4
++        with:
++          repository: seL4/machine_queue
++          path: machine_queue
++      - name: Download image
++        uses: actions/download-artifact@v4
++        with:
++          name: images-${{ matrix.march }}-${{ matrix.compiler }}
++      - name: Run
++        uses: seL4/ci-actions/sel4test-hw-run@master
++        with:
++          platform: ${{ matrix.platform }}
++          compiler: ${{ matrix.compiler }}
++          mode: ${{ matrix.mode }}
++          index: $${{ strategy.job-index }}
++        env:
++          HW_SSH: ${{ secrets.HW_SSH }}
+diff --git a/.github/workflows/sel4test-sim.yml b/.github/workflows/sel4test-sim.yml
+index 5ee990078..3b5a7c07e 100644
+--- a/.github/workflows/sel4test-sim.yml
++++ b/.github/workflows/sel4test-sim.yml
+@@ -6,7 +6,7 @@
+ #
+ # See sel4test-sim/builds.yml in the repo seL4/ci-actions for configs.
+ 
+-name: seL4Test
++name: seL4Test-Sim
+ 
+ on:
+   pull_request:
+@@ -14,9 +14,26 @@ on:
+       - 'manual/**'
+       - 'LICENSES/**'
+       - '*.md'
+-  workflow_dispatch:
++
++# To reduce the load we cancel any older runs of this workflow for the current
++# PR. Such runs exist, if there were new pushes to the PR's branch without
++# waiting for the workflow to finish. As a side effect, pushing new commits now
++# becomes a convenient way to cancel all the older runs, e.g. if they are stuck
++# and would only be stopped by the timeout eventually.
++concurrency:
++  group: ${{ github.workflow }}-pr-${{ github.event.number }}
++  cancel-in-progress: true
+ 
+ jobs:
+   sim:
+-    name: Sim
+-    uses: seL4/ci-actions/.github/workflows/sel4test-sim.yml@master
++    name: Simulation
++    runs-on: ubuntu-latest
++    strategy:
++      matrix:
++        march: [armv7a, armv8a, nehalem, rv32imac, rv64imac]
++        compiler: [gcc, clang]
++    steps:
++    - uses: seL4/ci-actions/sel4test-sim@master
++      with:
++        march: ${{ matrix.march }}
++        compiler: ${{ matrix.compiler }}
+diff --git a/.github/workflows/xml_lint.yml b/.github/workflows/xml_lint.yml
+index b94fe08b8..229073f83 100644
+--- a/.github/workflows/xml_lint.yml
++++ b/.github/workflows/xml_lint.yml
+@@ -21,7 +21,6 @@ on:
+       - 'libsel4/**/sel4*.xsd'
+       - 'libsel4/include/api/syscall.xml'
+       - 'libsel4/include/api/syscall.xsd'
+-  workflow_dispatch:
+ 
+ jobs:
+   xmllint:
+diff --git a/CHANGES.md b/CHANGES.md
+index fd575fec4..ad50d6f5e 100644
+--- a/CHANGES.md
++++ b/CHANGES.md
+@@ -26,8 +26,6 @@ description indicates whether it is SOURCE-COMPATIBLE, BINARY-COMPATIBLE, or BRE
+ ### Changes
+ 
+ * Added `zynqmp` and `rpi4` to the set of verified AArch64 configs.
+-* riscv: Change default cmake options KernelRiscvExtF and KernelRiscvExtD from OFF to ON.
+-  Except for RISCV32 with LLVM clang enabled will default both to OFF.
+ 
+ ### Platforms
+ 
+@@ -37,12 +35,6 @@ description indicates whether it is SOURCE-COMPATIBLE, BINARY-COMPATIBLE, or BRE
+   `set(KernelArmDisableWFIWFETraps ON)`
+   to your project settings to get the same configuration as before if you are using `tqma8xqp1gb`.
+ 
+-#### Arm
+-
+-* Added config option for selecting which thread ID register is used for Kernel TLS syscalls and invocations.
+-  KernelArmTLSReg can be used to select either `tpidru` or `tpidruro` as the TLS register used for `seL4_TCB_SetTLSBase` and `seL4_SetTLSBase` operations.
+-  This config option's default value is `tpidru` which is what the register that the kernel currently uses for the TLS register for aarch32 and aarch64 platforms.
+-
+ ### Upgrade Notes
+ 
+ ---
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 13e2a22c1..dcdf92b2b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.8.2)
+ include(CheckCCompilerFlag)
+ 
+ include(${CMAKE_CURRENT_LIST_DIR}/configs/seL4Config.cmake)
+@@ -309,14 +309,6 @@ else()
+     message(FATAL_ERROR "unknown KernelArch '${KernelArch}'")
+ endif()
+ 
+-if(
+-    (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+-    AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "20.0.0")
+-)
+-    # To avoid clang: error: argument unused during compilation: '-c'
+-    add_compile_options(-Wno-unused-command-line-argument)
+-endif()
+-
+ # Sort the C sources to ensure a stable layout of the final C file
+ list(SORT c_sources)
+ # Add the domain schedule now that its sorted
+diff --git a/README.md b/README.md
+index ff54c9d9d..096572095 100644
+--- a/README.md
++++ b/README.md
+@@ -37,7 +37,7 @@ system in a larger project.
+   [3]: https://docs.sel4.systems/processes/contributing.html
+   [4]: https://zenodo.org/badge/DOI/10.5281/zenodo.591727.svg
+   [5]: https://sel4.systems/Info/Docs/seL4-manual-latest.pdf
+-  [6]: https://docs.sel4.systems/Resources#setting-up-your-machine
++  [6]: https://docs.sel4.systems/GettingStarted
+   [7]: https://docs.sel4.systems/releases/sel4
+   [8]: https://docs.sel4.systems/projects/sel4/api-doc.html
+ 
+diff --git a/config.cmake b/config.cmake
+index 7c97174af..30e7f624d 100644
+--- a/config.cmake
++++ b/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ config_option(
+     KernelIsMCS KERNEL_MCS "Use the MCS kernel configuration, which is not verified."
+@@ -104,6 +104,133 @@ if(NOT "${KernelCustomDTS}" STREQUAL "")
+     message(STATUS "Using custom ${KernelCustomDTS} device tree, ignoring default dts and overlays")
+ endif()
+ 
++if(DEFINED KernelDTSList AND (NOT "${KernelDTSList}" STREQUAL ""))
++    set(KernelDTSIntermediate "${CMAKE_CURRENT_BINARY_DIR}/kernel.dts")
++    set(
++        KernelDTBPath "${CMAKE_CURRENT_BINARY_DIR}/kernel.dtb"
++        CACHE INTERNAL "Location of kernel DTB file"
++    )
++    set(compatibility_outfile "${CMAKE_CURRENT_BINARY_DIR}/kernel_compat.txt")
++    set(device_dest "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/devices_gen.h")
++    set(
++        platform_yaml "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/platform_gen.yaml"
++        CACHE INTERNAL "Location of platform YAML description"
++    )
++    set(
++        platform_json "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/platform_gen.json"
++        CACHE INTERNAL "Location of platform JSON description"
++    )
++    set(config_file "${CMAKE_CURRENT_SOURCE_DIR}/tools/hardware.yml")
++    set(config_schema "${CMAKE_CURRENT_SOURCE_DIR}/tools/hardware_schema.yml")
++    set(
++        KernelCustomDTSOverlay ""
++        CACHE
++            STRING
++            "Provide an additional list of overlays to append to the selected KernelPlatform's \
++        device tree during build time"
++    )
++    if(NOT "${KernelCustomDTSOverlay}" STREQUAL "")
++        foreach(dts_entry IN ITEMS ${KernelCustomDTSOverlay})
++            if(NOT EXISTS ${dts_entry})
++                message(FATAL_ERROR "Can't open external overlay file '${dts_entry}'!")
++            endif()
++            list(APPEND KernelDTSList "${dts_entry}")
++            message(STATUS "Appending ${dts_entry} overlay")
++        endforeach()
++    endif()
++
++    find_program(DTC_TOOL dtc)
++    if("${DTC_TOOL}" STREQUAL "DTC_TOOL-NOTFOUND")
++        message(FATAL_ERROR "Cannot find 'dtc' program.")
++    endif()
++    find_program(STAT_TOOL stat)
++    if("${STAT_TOOL}" STREQUAL "STAT_TOOL-NOTFOUND")
++        message(FATAL_ERROR "Cannot find 'stat' program.")
++    endif()
++    mark_as_advanced(DTC_TOOL STAT_TOOL)
++    # Generate final DTS based on Linux DTS + seL4 overlay[s]
++    foreach(entry ${KernelDTSList})
++        get_absolute_source_or_binary(dts_tmp ${entry})
++        list(APPEND dts_list "${dts_tmp}")
++    endforeach()
++
++    check_outfile_stale(regen ${KernelDTBPath} dts_list ${CMAKE_CURRENT_BINARY_DIR}/dts.cmd)
++    if(regen)
++        file(REMOVE "${KernelDTSIntermediate}")
++        foreach(entry ${dts_list})
++            file(READ ${entry} CONTENTS)
++            file(APPEND "${KernelDTSIntermediate}" "${CONTENTS}")
++        endforeach()
++        # Compile DTS to DTB
++        execute_process(
++            COMMAND
++                ${DTC_TOOL} -q -I dts -O dtb -o ${KernelDTBPath} ${KernelDTSIntermediate}
++            RESULT_VARIABLE error
++        )
++        if(error)
++            message(FATAL_ERROR "Failed to compile DTS to DTB: ${KernelDTSIntermediate}")
++        endif()
++        # The macOS and GNU coreutils `stat` utilities have different interfaces.
++        # Check if we're using the macOS version, otherwise assume GNU coreutils.
++        # CMAKE_HOST_APPLE is a built-in CMake variable.
++        if(CMAKE_HOST_APPLE AND "${STAT_TOOL}" STREQUAL "/usr/bin/stat")
++            set(STAT_ARGS "-f%z")
++        else()
++            set(STAT_ARGS "-c '%s'")
++        endif()
++        # Track the size of the DTB for downstream tools
++        execute_process(
++            COMMAND ${STAT_TOOL} ${STAT_ARGS} ${KernelDTBPath}
++            OUTPUT_VARIABLE KernelDTBSize
++            OUTPUT_STRIP_TRAILING_WHITESPACE
++            RESULT_VARIABLE error
++        )
++        if(error)
++            message(FATAL_ERROR "Failed to determine KernelDTBSize: ${KernelDTBPath}")
++        endif()
++        string(
++            REPLACE
++                "\'"
++                ""
++                KernelDTBSize
++                ${KernelDTBSize}
++        )
++        set(KernelDTBSize "${KernelDTBSize}" CACHE INTERNAL "Size of DTB blob, in bytes")
++    endif()
++
++    set(deps ${KernelDTBPath} ${config_file} ${config_schema} ${HARDWARE_GEN_PATH})
++    check_outfile_stale(regen ${device_dest} deps ${CMAKE_CURRENT_BINARY_DIR}/gen_header.cmd)
++    if(regen)
++        # Generate devices_gen header based on DTB
++        message(STATUS "${device_dest} is out of date. Regenerating from DTB...")
++        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/")
++        execute_process(
++            COMMAND
++                ${PYTHON3} "${HARDWARE_GEN_PATH}" --dtb "${KernelDTBPath}" --compat-strings
++                --compat-strings-out "${compatibility_outfile}" --c-header --header-out
++                "${device_dest}" --hardware-config "${config_file}" --hardware-schema
++                "${config_schema}" --yaml --yaml-out "${platform_yaml}" --sel4arch
++                "${KernelSel4Arch}" --addrspace-max "${KernelPaddrUserTop}" --json --json-out
++                "${platform_json}"
++            RESULT_VARIABLE error
++        )
++        if(error)
++            message(FATAL_ERROR "Failed to generate from DTB: ${device_dest}")
++        endif()
++    endif()
++    file(READ "${compatibility_outfile}" compatibility_strings)
++
++    # Mark all file dependencies as CMake rerun dependencies.
++    set(cmake_deps ${deps} ${KernelDTSIntermediate} ${KernelDTSList} ${compatibility_outfile})
++    set_property(
++        DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
++        APPEND
++        PROPERTY CMAKE_CONFIGURE_DEPENDS ${cmake_deps}
++    )
++
++    include(src/drivers/config.cmake)
++endif()
++
+ # Enshrine common variables in the config
+ config_set(KernelHaveFPU HAVE_FPU "${KernelHaveFPU}")
+ config_set(KernelPaddrUserTop PADDR_USER_DEVICE_TOP "${KernelPaddrUserTop}")
+@@ -394,7 +521,7 @@ config_option(
+     Useful for profiling."
+     DEFAULT OFF
+     DEPENDS
+-        "NOT KernelArmHypervisorSupport;NOT KernelVerificationBuild;NOT KernelPlatformHikey;NOT KernelSkimWindow"
++        "NOT KernelARMHypervisorSupport;NOT KernelVerificationBuild;NOT KernelPlatformHikey;NOT KernelSkimWindow"
+ )
+ 
+ config_option(
+@@ -471,133 +598,4 @@ config_option(
+     DEFAULT OFF
+ )
+ 
+-if(DEFINED KernelDTSList AND (NOT "${KernelDTSList}" STREQUAL ""))
+-    set(KernelDTSIntermediate "${CMAKE_CURRENT_BINARY_DIR}/kernel.dts")
+-    set(
+-        KernelDTBPath "${CMAKE_CURRENT_BINARY_DIR}/kernel.dtb"
+-        CACHE INTERNAL "Location of kernel DTB file"
+-    )
+-    set(compatibility_outfile "${CMAKE_CURRENT_BINARY_DIR}/kernel_compat.txt")
+-    set(device_dest "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/devices_gen.h")
+-    set(
+-        platform_yaml "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/platform_gen.yaml"
+-        CACHE INTERNAL "Location of platform YAML description"
+-    )
+-    set(
+-        platform_json "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/platform_gen.json"
+-        CACHE INTERNAL "Location of platform JSON description"
+-    )
+-    set(config_file "${CMAKE_CURRENT_SOURCE_DIR}/tools/hardware.yml")
+-    set(config_schema "${CMAKE_CURRENT_SOURCE_DIR}/tools/hardware_schema.yml")
+-    set(
+-        KernelCustomDTSOverlay ""
+-        CACHE
+-            STRING
+-            "Provide an additional list of overlays to append to the selected KernelPlatform's \
+-        device tree during build time"
+-    )
+-    if(NOT "${KernelCustomDTSOverlay}" STREQUAL "")
+-        foreach(dts_entry IN ITEMS ${KernelCustomDTSOverlay})
+-            if(NOT EXISTS ${dts_entry})
+-                message(FATAL_ERROR "Can't open external overlay file '${dts_entry}'!")
+-            endif()
+-            list(APPEND KernelDTSList "${dts_entry}")
+-            message(STATUS "Appending ${dts_entry} overlay")
+-        endforeach()
+-    endif()
+-
+-    find_program(DTC_TOOL dtc)
+-    if("${DTC_TOOL}" STREQUAL "DTC_TOOL-NOTFOUND")
+-        message(FATAL_ERROR "Cannot find 'dtc' program.")
+-    endif()
+-    find_program(STAT_TOOL stat)
+-    if("${STAT_TOOL}" STREQUAL "STAT_TOOL-NOTFOUND")
+-        message(FATAL_ERROR "Cannot find 'stat' program.")
+-    endif()
+-    mark_as_advanced(DTC_TOOL STAT_TOOL)
+-    # Generate final DTS based on Linux DTS + seL4 overlay[s]
+-    foreach(entry ${KernelDTSList})
+-        get_absolute_source_or_binary(dts_tmp ${entry})
+-        list(APPEND dts_list "${dts_tmp}")
+-    endforeach()
+-
+-    check_outfile_stale(regen ${KernelDTBPath} dts_list ${CMAKE_CURRENT_BINARY_DIR}/dts.cmd)
+-    if(regen)
+-        file(REMOVE "${KernelDTSIntermediate}")
+-        foreach(entry ${dts_list})
+-            file(READ ${entry} CONTENTS)
+-            file(APPEND "${KernelDTSIntermediate}" "${CONTENTS}")
+-        endforeach()
+-        # Compile DTS to DTB
+-        execute_process(
+-            COMMAND
+-                ${DTC_TOOL} -q -I dts -O dtb -o ${KernelDTBPath} ${KernelDTSIntermediate}
+-            RESULT_VARIABLE error
+-        )
+-        if(error)
+-            message(FATAL_ERROR "Failed to compile DTS to DTB: ${KernelDTSIntermediate}")
+-        endif()
+-        # The macOS and GNU coreutils `stat` utilities have different interfaces.
+-        # Check if we're using the macOS version, otherwise assume GNU coreutils.
+-        # CMAKE_HOST_APPLE is a built-in CMake variable.
+-        if(CMAKE_HOST_APPLE AND "${STAT_TOOL}" STREQUAL "/usr/bin/stat")
+-            set(STAT_ARGS "-f%z")
+-        else()
+-            set(STAT_ARGS "-c '%s'")
+-        endif()
+-        # Track the size of the DTB for downstream tools
+-        execute_process(
+-            COMMAND ${STAT_TOOL} ${STAT_ARGS} ${KernelDTBPath}
+-            OUTPUT_VARIABLE KernelDTBSize
+-            OUTPUT_STRIP_TRAILING_WHITESPACE
+-            RESULT_VARIABLE error
+-        )
+-        if(error)
+-            message(FATAL_ERROR "Failed to determine KernelDTBSize: ${KernelDTBPath}")
+-        endif()
+-        string(
+-            REPLACE
+-                "\'"
+-                ""
+-                KernelDTBSize
+-                ${KernelDTBSize}
+-        )
+-        set(KernelDTBSize "${KernelDTBSize}" CACHE INTERNAL "Size of DTB blob, in bytes")
+-    endif()
+-
+-    set(deps ${KernelDTBPath} ${config_file} ${config_schema} ${HARDWARE_GEN_PATH})
+-    check_outfile_stale(regen ${device_dest} deps ${CMAKE_CURRENT_BINARY_DIR}/gen_header.cmd)
+-    if(regen)
+-        # Generate devices_gen header based on DTB
+-        message(STATUS "${device_dest} is out of date. Regenerating from DTB...")
+-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gen_headers/plat/machine/")
+-        execute_process(
+-            COMMAND
+-                ${PYTHON3} "${HARDWARE_GEN_PATH}" --dtb "${KernelDTBPath}" --compat-strings
+-                --compat-strings-out "${compatibility_outfile}" --c-header --header-out
+-                "${device_dest}" --hardware-config "${config_file}" --hardware-schema
+-                "${config_schema}" --yaml --yaml-out "${platform_yaml}" --sel4arch
+-                "${KernelSel4Arch}" --addrspace-max "${KernelPaddrUserTop}" --json --json-out
+-                "${platform_json}" --kernel-config-flags "CONFIG_PRINTING=${KernelPrinting}"
+-                "CONFIG_ARM_HYPERVISOR_SUPPORT=${KernelArmHypervisorSupport}"
+-                "CONFIG_ARM_SMMU=${KernelArmSMMU}" "CONFIG_TK1_SMMU=${KernelTk1SMMU}"
+-            RESULT_VARIABLE error
+-        )
+-        if(error)
+-            message(FATAL_ERROR "Failed to generate from DTB: ${device_dest}")
+-        endif()
+-    endif()
+-    file(READ "${compatibility_outfile}" compatibility_strings)
+-
+-    # Mark all file dependencies as CMake rerun dependencies.
+-    set(cmake_deps ${deps} ${KernelDTSIntermediate} ${KernelDTSList} ${compatibility_outfile})
+-    set_property(
+-        DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+-        APPEND
+-        PROPERTY CMAKE_CONFIGURE_DEPENDS ${cmake_deps}
+-    )
+-
+-    include(src/drivers/config.cmake)
+-endif()
+-
+ add_config_library(kernel "${configure_string}")
+diff --git a/configs/AARCH64_imx8mm_verified.cmake b/configs/AARCH64_imx8mm_verified.cmake
+deleted file mode 100755
+index b1a625e59..000000000
+--- a/configs/AARCH64_imx8mm_verified.cmake
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-
+-set(KernelPlatform "imx8mm-evk" CACHE STRING "")
+diff --git a/configs/AARCH64_imx8mq_verified.cmake b/configs/AARCH64_imx8mq_verified.cmake
+deleted file mode 100755
+index 3b2d03ecf..000000000
+--- a/configs/AARCH64_imx8mq_verified.cmake
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-
+-set(KernelPlatform "imx8mq-evk" CACHE STRING "")
+diff --git a/configs/AARCH64_imx93_verified.cmake b/configs/AARCH64_imx93_verified.cmake
+deleted file mode 100755
+index 573e7c8f9..000000000
+--- a/configs/AARCH64_imx93_verified.cmake
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-
+-set(KernelPlatform "imx93" CACHE STRING "")
+diff --git a/configs/AARCH64_maaxboard_verified.cmake b/configs/AARCH64_maaxboard_verified.cmake
+deleted file mode 100755
+index 5bbe4d348..000000000
+--- a/configs/AARCH64_maaxboard_verified.cmake
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-
+-set(KernelPlatform "maaxboard" CACHE STRING "")
+diff --git a/configs/AARCH64_rockpro64_verified.cmake b/configs/AARCH64_rockpro64_verified.cmake
+deleted file mode 100755
+index 2e6adfbe3..000000000
+--- a/configs/AARCH64_rockpro64_verified.cmake
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-
+-set(KernelPlatform "rockpro64" CACHE STRING "")
+diff --git a/configs/AARCH64_tqma_verified.cmake b/configs/AARCH64_tqma_verified.cmake
+deleted file mode 100755
+index 7bf8eb1f9..000000000
+--- a/configs/AARCH64_tqma_verified.cmake
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-set(KernelPlatform "tqma8xqp1gb" CACHE STRING "")
+diff --git a/configs/AARCH64_tx1_verified.cmake b/configs/AARCH64_tx1_verified.cmake
+deleted file mode 100755
+index f8dee9215..000000000
+--- a/configs/AARCH64_tx1_verified.cmake
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/usr/bin/env -S cmake -P
+-#
+-# Copyright 2025, Proofcraft Pty Ltd
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-include(${CMAKE_CURRENT_LIST_DIR}/include/AARCH64_verified_include.cmake)
+-
+-set(KernelPlatform "tx1" CACHE STRING "")
+diff --git a/configs/include/RISCV64_verified_include.cmake b/configs/include/RISCV64_verified_include.cmake
+index 05a9cbb50..4c7804618 100644
+--- a/configs/include/RISCV64_verified_include.cmake
++++ b/configs/include/RISCV64_verified_include.cmake
+@@ -25,5 +25,3 @@ set(KernelRootCNodeSizeBits 19 CACHE STRING "")
+ set(KernelMaxNumBootinfoUntypedCaps 50 CACHE STRING "")
+ set(KernelClzNoBuiltin ON CACHE BOOL "")
+ set(KernelCtzNoBuiltin ON CACHE BOOL "")
+-set(KernelRiscvExtF OFF CACHE BOOL "")
+-set(KernelRiscvExtD OFF CACHE BOOL "")
+diff --git a/gcc.cmake b/gcc.cmake
+index 49e8b7862..3f018f714 100644
+--- a/gcc.cmake
++++ b/gcc.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ set(CMAKE_SYSTEM_NAME Generic)
+ # For a generic system this is unused, so define it to something that will be
+@@ -74,9 +74,7 @@ if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
+                 CROSS_COMPILER_PREFIX
+                 "riscv64-unknown-linux-gnu-"
+                 "riscv64-unknown-elf-"
+-                "riscv64-none-elf-"
+                 "riscv64-elf-"
+-                "riscv64-linux-gnu-"
+             )
+         endif()
+     else()
+@@ -108,7 +106,6 @@ if("${CROSS_COMPILER_PREFIX}" STREQUAL "")
+                 "riscv64-unknown-elf-"
+                 "riscv64-none-elf-"
+                 "riscv64-elf-"
+-                "riscv64-linux-gnu-"
+             )
+         endif()
+     endif()
+diff --git a/include/32/mode/config.cmake b/include/32/mode/config.cmake
+index ba9fe39f1..9897979d2 100644
+--- a/include/32/mode/config.cmake
++++ b/include/32/mode/config.cmake
+@@ -4,6 +4,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_bf_source_old("Kernel32" "shared_types.bf" "libsel4/mode_include/32" "sel4")
+diff --git a/include/64/mode/config.cmake b/include/64/mode/config.cmake
+index d495706cf..6a6789513 100644
+--- a/include/64/mode/config.cmake
++++ b/include/64/mode/config.cmake
+@@ -4,6 +4,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_bf_source_old("Kernel64" "shared_types.bf" "libsel4/mode_include/64" "sel4")
+diff --git a/include/arch/arm/arch/32/mode/machine/registerset.h b/include/arch/arm/arch/32/mode/machine/registerset.h
+index 162fa3c30..5da84ecf0 100644
+--- a/include/arch/arm/arch/32/mode/machine/registerset.h
++++ b/include/arch/arm/arch/32/mode/machine/registerset.h
+@@ -100,13 +100,9 @@ enum _register {
+     /* user readable/writable thread ID register.
+      * name comes from the ARM manual */
+     TPIDRURW = 18,
++    TLS_BASE = TPIDRURW,
+     /* user readonly thread ID register. */
+     TPIDRURO = 19,
+-#ifdef CONFIG_ARM_TLS_REG_TPIDRU
+-    TLS_BASE = TPIDRURW,
+-#elif defined(CONFIG_ARM_TLS_REG_TPIDRURO)
+-    TLS_BASE = TPIDRURO,
+-#endif
+     n_contextRegisters = 20,
+ };
+ 
+diff --git a/include/arch/arm/arch/32/mode/smp/smp.h b/include/arch/arm/arch/32/mode/smp/smp.h
+index c98214af1..b93e8f1f6 100644
+--- a/include/arch/arm/arch/32/mode/smp/smp.h
++++ b/include/arch/arm/arch/32/mode/smp/smp.h
+@@ -8,14 +8,29 @@
+ #include <config.h>
+ 
+ #ifdef ENABLE_SMP_SUPPORT
++
++#define LD_EX               "ldrex "
++#define ST_EX               "strex "
++#define OP_WIDTH
++
+ extern char kernel_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(CONFIG_KERNEL_STACK_BITS)];
+ 
++/* Get current stack pointer */
++static inline word_t getCurSP(void)
++{
++    word_t stack_address;
++    asm("mov %[stack_address], %[currStackAddress]" : [stack_address] "=r"(stack_address) : [currStackAddress] "r"(&stack_address):);
++    return stack_address;
++}
++
+ static inline CONST cpu_id_t getCurrentCPUIndex(void)
+ {
+-    char sp[8];
+-    word_t idx = (word_t)(sp - kernel_stack_alloc[0]);
++    cpu_id_t cpu_id;
++    word_t sp = getCurSP();
+ 
+-    return idx >> CONFIG_KERNEL_STACK_BITS;
++    sp -= (word_t) kernel_stack_alloc;
++    cpu_id = sp >> CONFIG_KERNEL_STACK_BITS;
++    return cpu_id;
+ }
+ 
+ #endif /* ENABLE_SMP_SUPPORT */
+diff --git a/include/arch/arm/arch/64/mode/machine/fpu.h b/include/arch/arm/arch/64/mode/machine/fpu.h
+index 71cea33e1..34d8a8a45 100644
+--- a/include/arch/arm/arch/64/mode/machine/fpu.h
++++ b/include/arch/arm/arch/64/mode/machine/fpu.h
+@@ -18,7 +18,6 @@ static inline void saveFpuState(user_fpu_state_t *dest)
+ 
+     asm volatile(
+         /* SIMD and floating-point register file */
+-        ".arch_extension fp\n"
+         "stp     q0, q1, [%1, #16 * 0]      \n"
+         "stp     q2, q3, [%1, #16 * 2]      \n"
+         "stp     q4, q5, [%1, #16 * 4]      \n"
+@@ -41,7 +40,6 @@ static inline void saveFpuState(user_fpu_state_t *dest)
+         "str     %w0, [%1, #16 * 32]        \n"
+         "mrs     %0, fpcr                   \n"
+         "str     %w0, [%1, #16 * 32 + 4]    \n"
+-        ".arch_extension nofp\n"
+         : "=&r"(temp)
+         : "r"(dest)
+         : "memory"
+@@ -55,7 +53,6 @@ static inline void loadFpuState(user_fpu_state_t *src)
+ 
+     asm volatile(
+         /* SIMD and floating-point register file */
+-        ".arch_extension fp\n"
+         "ldp     q0, q1, [%1, #16 * 0]      \n"
+         "ldp     q2, q3, [%1, #16 * 2]      \n"
+         "ldp     q4, q5, [%1, #16 * 4]      \n"
+@@ -78,7 +75,6 @@ static inline void loadFpuState(user_fpu_state_t *src)
+         "msr     fpsr, %0                   \n"
+         "ldr     %w0, [%1, #16 * 32 + 4]    \n"
+         "msr     fpcr, %0                   \n"
+-        ".arch_extension nofp\n"
+         : "=&r"(temp)
+         : "r"(src)
+         : "memory"
+diff --git a/include/arch/arm/arch/64/mode/machine/registerset.h b/include/arch/arm/arch/64/mode/machine/registerset.h
+index d956727e1..e4c2b3104 100644
+--- a/include/arch/arm/arch/64/mode/machine/registerset.h
++++ b/include/arch/arm/arch/64/mode/machine/registerset.h
+@@ -143,13 +143,9 @@ enum _register {
+     /* user readable/writable thread ID register.
+      * name comes from the ARM manual */
+     TPIDR_EL0                   = 35,
++    TLS_BASE                    = TPIDR_EL0,
+     /* user readonly thread ID register. */
+     TPIDRRO_EL0                 = 36,
+-#ifdef CONFIG_ARM_TLS_REG_TPIDRU
+-    TLS_BASE = TPIDR_EL0,
+-#elif defined(CONFIG_ARM_TLS_REG_TPIDRURO)
+-    TLS_BASE = TPIDRRO_EL0,
+-#endif
+     n_contextRegisters          = 37,
+ };
+ 
+diff --git a/include/arch/arm/arch/64/mode/smp/smp.h b/include/arch/arm/arch/64/mode/smp/smp.h
+index c46872a40..65fc85632 100644
+--- a/include/arch/arm/arch/64/mode/smp/smp.h
++++ b/include/arch/arm/arch/64/mode/smp/smp.h
+@@ -12,6 +12,10 @@
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+ 
++#define LD_EX               "ldxr "
++#define ST_EX               "stxr "
++#define OP_WIDTH            "w"
++
+ extern char kernel_stack_alloc[CONFIG_MAX_NUM_NODES][BIT(CONFIG_KERNEL_STACK_BITS)];
+ compile_assert(kernel_stack_4k_aligned, KERNEL_STACK_ALIGNMENT == 4096)
+ 
+diff --git a/include/arch/arm/arch/machine/gic_v3.h b/include/arch/arm/arch/machine/gic_v3.h
+index 75d62559b..933444c57 100644
+--- a/include/arch/arm/arch/machine/gic_v3.h
++++ b/include/arch/arm/arch/machine/gic_v3.h
+@@ -31,6 +31,7 @@
+ #define GIC_VCPU_MAX_NUM_LR 16
+ 
+ /* Register bits */
++#define GICD_CTL_ENABLE 0x1
+ #define GICD_CTLR_RWP                BIT(31)
+ #define GICD_CTLR_ARE_NS             BIT(4)
+ #define GICD_CTLR_ENABLE_G1NS         BIT(1)
+@@ -264,7 +265,7 @@ static inline irq_t getActiveIRQ(void)
+     irq_t irq;
+ 
+     if (!IS_IRQ_VALID(active_irq[CURRENT_CPU_INDEX()])) {
+-        word_t val = 0;
++        uint32_t val = 0;
+         SYSTEM_READ_WORD(ICC_IAR1_EL1, val);
+         active_irq[CURRENT_CPU_INDEX()] = val;
+     }
+@@ -287,7 +288,7 @@ static inline irq_t getActiveIRQ(void)
+ /** DONT_TRANSLATE */
+ static inline bool_t isIRQPending(void)
+ {
+-    word_t val = 0;
++    uint32_t val = 0;
+     /* Check for pending IRQs in group 1: ICC_HPPIR1_EL1 */
+     SYSTEM_READ_WORD(ICC_HPPIR1_EL1, val);
+     return IS_IRQ_VALID(val);
+@@ -323,10 +324,9 @@ extern word_t gic_vcpu_num_list_regs;
+ 
+ static inline uint32_t get_gic_vcpu_ctrl_hcr(void)
+ {
+-    uint64_t reg;
++    uint32_t reg;
+     MRS(ICH_HCR_EL2, reg);
+-    /* 64 bit register read, top 32 bits reserved */
+-    return (uint32_t) reg;
++    return reg;
+ }
+ 
+ static inline void set_gic_vcpu_ctrl_hcr(uint32_t hcr)
+@@ -336,10 +336,9 @@ static inline void set_gic_vcpu_ctrl_hcr(uint32_t hcr)
+ 
+ static inline uint32_t get_gic_vcpu_ctrl_vmcr(void)
+ {
+-    uint64_t reg;
++    uint32_t reg;
+     MRS(ICH_VMCR_EL2, reg);
+-    /* 64 bit register read, top 32 bits reserved */
+-    return (uint32_t) reg;
++    return reg;
+ }
+ 
+ static inline void set_gic_vcpu_ctrl_vmcr(uint32_t vmcr)
+@@ -354,10 +353,9 @@ static inline void set_gic_vcpu_ctrl_vmcr(uint32_t vmcr)
+  */
+ static inline uint32_t get_gic_vcpu_ctrl_apr(void)
+ {
+-    uint64_t reg;
++    uint32_t reg;
+     MRS(ICH_AP1R0_EL2, reg);
+-    /* 64 bit register read, top 32 bits reserved */
+-    return (uint32_t) reg;
++    return reg;
+ }
+ 
+ static inline void set_gic_vcpu_ctrl_apr(uint32_t apr)
+@@ -367,17 +365,15 @@ static inline void set_gic_vcpu_ctrl_apr(uint32_t apr)
+ 
+ static inline uint32_t get_gic_vcpu_ctrl_vtr(void)
+ {
+-    uint64_t reg;
++    uint32_t reg;
+     MRS(ICH_VTR_EL2, reg);
+-    /* 64 bit register read, top 32 bits reserved */
+-    return (uint32_t) reg;
++    return reg;
+ }
+ 
+ static inline uint32_t get_gic_vcpu_ctrl_eisr0(void)
+ {
+-    uint64_t reg;
++    uint32_t reg;
+     MRS(ICH_EISR_EL2, reg);
+-    /* 64 bit register read, top 32 bits reserved */
+     return reg;
+ }
+ 
+@@ -391,10 +387,9 @@ static inline uint32_t get_gic_vcpu_ctrl_eisr1(void)
+ 
+ static inline uint32_t get_gic_vcpu_ctrl_misr(void)
+ {
+-    uint64_t reg;
++    uint32_t reg;
+     MRS(ICH_MISR_EL2, reg);
+-    /* 64 bit register read, top 32 bits reserved */
+-    return (uint32_t) reg;
++    return reg;
+ }
+ 
+ static inline virq_t get_gic_vcpu_ctrl_lr(int num)
+diff --git a/include/arch/arm/arch/machine/hardware.h b/include/arch/arm/arch/machine/hardware.h
+index 8ebbf767d..029ea51c0 100644
+--- a/include/arch/arm/arch/machine/hardware.h
++++ b/include/arch/arm/arch/machine/hardware.h
+@@ -33,25 +33,3 @@ typedef word_t vm_fault_type_t;
+ #define L1_CACHE_LINE_SIZE_BITS CONFIG_L1_CACHE_LINE_SIZE_BITS
+ #define L1_CACHE_LINE_SIZE BIT(L1_CACHE_LINE_SIZE_BITS)
+ 
+-/*
+- * Used to align the big kernel lock to the exclusive reservation granule size.
+- * Without this nearby writes can delay atomic operations implemented with looping
+- * exclusive load/store instructions for an undefined time.
+- *
+- * Usually equal to L1_CACHE_LINE_SIZE, but 2k is the maximum for SMP systems.
+- *
+- * ARM Architecture Reference Manual ARMv7-A and ARMv7-R edition, chapter A3.4.5
+- * Load-Exclusive and Store-Exclusive usage restrictions, page 122 states:
+- *
+- * "The architecture sets an upper limit of 2048 bytes on the size of a region
+- *  that can be marked as exclusive."
+- *
+- * ARM Architecture Reference Manual ARMv8 for A-profile architecture, chapter
+- * B2.9.5 Load-Exclusive and Store-Exclusive instruction usage restrictions,
+- * page 216 states:
+- *
+- * "The architecture sets an upper limit of 2048 bytes on the Exclusives
+- *  reservation granule that can be marked as exclusive."
+- */
+-#define EXCL_RES_GRANULE_SIZE 2048
+-
+diff --git a/include/arch/arm/arch/model/smp.h b/include/arch/arm/arch/model/smp.h
+index 292a2300e..f9abe72a9 100644
+--- a/include/arch/arm/arch/model/smp.h
++++ b/include/arch/arm/arch/model/smp.h
+@@ -15,5 +15,25 @@ static inline cpu_id_t cpuIndexToID(word_t index)
+ {
+     return BIT(index);
+ }
++
++static inline bool_t try_arch_atomic_exchange_rlx(void *ptr, void *new_val, void **prev)
++{
++    uint32_t atomic_status;
++    void *temp;
++
++    asm volatile(
++        LD_EX "%[prev_output], [%[ptr_val]]             \n\t" /* ret = *ptr */
++        ST_EX "%" OP_WIDTH "[atomic_var], %[new_val] , [%[ptr_val]] \n\t"  /* *ptr = new */
++        : [atomic_var] "=&r"(atomic_status), [prev_output]"=&r"(temp)     /* output */
++        : [ptr_val] "r"(ptr), [new_val] "r"(new_val)   /* input */
++        :
++    );
++
++    *prev = temp;
++
++    /* On ARM if an atomic operation succeeds, it returns 0 */
++    return (atomic_status == 0);
++}
++
+ #endif /* ENABLE_SMP_SUPPORT */
+ 
+diff --git a/include/arch/riscv/arch/32/mode/hardware.h b/include/arch/riscv/arch/32/mode/hardware.h
+index d07eba6e8..b6c01a2d3 100644
+--- a/include/arch/riscv/arch/32/mode/hardware.h
++++ b/include/arch/riscv/arch/32/mode/hardware.h
+@@ -31,7 +31,7 @@
+ 
+ /* The first physical address to map into the kernel's physical memory
+  * window */
+-#define PADDR_BASE ROUND_DOWN(physBase(),22)
++#define PADDR_BASE physBase()
+ 
+ /* The base address in virtual memory to use for the 1:1 physical memory
+  * mapping */
+@@ -48,16 +48,15 @@
+ 
+ /* The physical memory address to use for mapping the kernel ELF
+  *
+- * This represents the physical address that the kernel image will be linked to.
+- * physBase can be any value, but needs to be low enough within a single large page
+- * so that the kernel image doesn't cross a 2^22 mapping boundary.
+- */
+-#define KERNEL_ELF_PADDR_BASE physBase()
++ * This represents the physical address that the kernel image will be linked to. This needs to
++ * be on a 1gb boundary as we currently require being able to creating a mapping to this address
++ * as the largest frame size */
++#define KERNEL_ELF_PADDR_BASE UL_CONST(0x84000000)
+ /* For use by the linker (only integer constants allowed) */
+-#define KERNEL_ELF_PADDR_BASE_RAW PHYS_BASE_RAW
++#define KERNEL_ELF_PADDR_BASE_RAW KERNEL_ELF_PADDR_BASE
+ 
+ /* The base address in virtual memory to use for the kernel ELF mapping */
+-#define KERNEL_ELF_BASE (UL_CONST(0xFF800000) + (KERNEL_ELF_PADDR_BASE_RAW & MASK(22)))
++#define KERNEL_ELF_BASE UL_CONST(0xFF800000)
+ /* For use by the linker (only integer constants allowed) */
+ #define KERNEL_ELF_BASE_RAW KERNEL_ELF_BASE
+ 
+diff --git a/include/arch/riscv/arch/64/mode/hardware.h b/include/arch/riscv/arch/64/mode/hardware.h
+index ef298c5a7..8964177e1 100644
+--- a/include/arch/riscv/arch/64/mode/hardware.h
++++ b/include/arch/riscv/arch/64/mode/hardware.h
+@@ -89,10 +89,12 @@
+ #define PPTR_TOP UL_CONST(0xFFFFFFFF80000000)
+ 
+ /* The physical memory address to use for mapping the kernel ELF */
+-/* This represents the physical address that the kernel image will be linked to. */
+-#define KERNEL_ELF_PADDR_BASE physBase()
++/* This represents the physical address that the kernel image will be linked to. This needs to
++ * be on a 1gb boundary as we currently require being able to creating a mapping to this address
++ * as the largest frame size */
++#define KERNEL_ELF_PADDR_BASE (physBase() + UL_CONST(0x4000000))
+ /* For use by the linker (only integer constants allowed) */
+-#define KERNEL_ELF_PADDR_BASE_RAW PHYS_BASE_RAW
++#define KERNEL_ELF_PADDR_BASE_RAW (PHYS_BASE_RAW + UL_CONST(0x4000000))
+ 
+ /* The base address in virtual memory to use for the kernel ELF mapping */
+ #define KERNEL_ELF_BASE (PPTR_TOP + (KERNEL_ELF_PADDR_BASE & MASK(30)))
+diff --git a/include/arch/riscv/arch/machine/hardware.h b/include/arch/riscv/arch/machine/hardware.h
+index 754264076..f205069f4 100644
+--- a/include/arch/riscv/arch/machine/hardware.h
++++ b/include/arch/riscv/arch/machine/hardware.h
+@@ -39,18 +39,6 @@
+ 
+ #define PAGE_BITS seL4_PageBits
+ 
+-/* Used to align the big kernel lock to the exclusive reservation granule size.
+- * Without this nearby writes can delay atomic operations implemented with looping
+- * exclusive load/store instructions for an undefined time.
+- *
+- * See Volume II: RISC-V Privileged Architectures V20211203, page 82:
+- *
+- * For implementations with both page-based virtual memory and the “A” standard
+- * extension, the LR/SC reservation set must lie completely within a single base
+- * page (i.e., a naturally aligned 4 KiB region).
+- */
+-#define EXCL_RES_GRANULE_SIZE BIT(seL4_PageBits)
+-
+ /* MMU RISC-V related definitions. See RISC-V manual priv-1.10 */
+ 
+ /* Extract the n-level PT index from a virtual address. This works for any
+diff --git a/include/arch/riscv/arch/model/smp.h b/include/arch/riscv/arch/model/smp.h
+index 9241d91fa..996995055 100644
+--- a/include/arch/riscv/arch/model/smp.h
++++ b/include/arch/riscv/arch/model/smp.h
+@@ -43,6 +43,12 @@ static inline void add_hart_to_core_map(word_t hart_id, word_t core_id)
+     coreMap.map[core_id] = hart_id;
+ }
+ 
++static inline bool_t try_arch_atomic_exchange_rlx(void *ptr, void *new_val, void **prev)
++{
++    *prev = __atomic_exchange_n((void **)ptr, new_val, __ATOMIC_RELAXED);
++    return true;
++}
++
+ static inline CONST cpu_id_t getCurrentCPUIndex(void)
+ {
+     word_t sp;
+diff --git a/include/arch/riscv/arch/model/statedata.h b/include/arch/riscv/arch/model/statedata.h
+index b91314eb2..c7b0af85f 100644
+--- a/include/arch/riscv/arch/model/statedata.h
++++ b/include/arch/riscv/arch/model/statedata.h
+@@ -27,11 +27,12 @@ extern asid_pool_t *riscvKSASIDTable[BIT(asidHighBits)];
+ /* Kernel Page Tables */
+ extern pte_t kernel_root_pageTable[BIT(PT_INDEX_BITS)] VISIBLE;
+ 
+-/* We need to introduce a level 1 page table in order to map OpenSBI into
+-   a separate 2MiB page to avoid a PMP exception */
++/* We need to introduce a level2 pagetable in order to map OpenSBI to a separate
++ * page entry to avoid PMP exception. */
+ #if __riscv_xlen != 32
+-extern pte_t kernel_image_level1_pt[BIT(PT_INDEX_BITS)];
+-extern pte_t kernel_image_level1_dev_pt[BIT(PT_INDEX_BITS)];
++extern pte_t kernel_image_level2_pt[BIT(PT_INDEX_BITS)];
++extern pte_t kernel_image_level2_dev_pt[BIT(PT_INDEX_BITS)];
+ #elif defined(CONFIG_KERNEL_LOG_BUFFER)
+-extern pte_t kernel_image_level1_log_buffer_pt[BIT(PT_INDEX_BITS)];
++extern pte_t kernel_image_level2_log_buffer_pt[BIT(PT_INDEX_BITS)];
+ #endif
++
+diff --git a/include/arch/x86/arch/machine/hardware.h b/include/arch/x86/arch/machine/hardware.h
+index 1891096df..0859067f8 100644
+--- a/include/arch/x86/arch/machine/hardware.h
++++ b/include/arch/x86/arch/machine/hardware.h
+@@ -16,7 +16,6 @@
+ #define LARGE_PAGE_BITS seL4_LargePageBits
+ #define L1_CACHE_LINE_SIZE_BITS CTZL(CONFIG_CACHE_LN_SZ)
+ #define L1_CACHE_LINE_SIZE CONFIG_CACHE_LN_SZ
+-#define EXCL_RES_GRANULE_SIZE L1_CACHE_LINE_SIZE
+ 
+ enum vm_fault_type {
+     X86DataFault = seL4_DataFault,
+diff --git a/include/arch/x86/arch/model/smp.h b/include/arch/x86/arch/model/smp.h
+index aac276418..f73bcb8a9 100644
+--- a/include/arch/x86/arch/model/smp.h
++++ b/include/arch/x86/arch/model/smp.h
+@@ -36,4 +36,10 @@ static inline PURE word_t getCurrentCPUID(void)
+     return cpu_mapping.index_to_cpu_id[getCurrentCPUIndex()];
+ }
+ 
++static inline bool_t try_arch_atomic_exchange_rlx(void *ptr, void *new_val, void **prev)
++{
++    *prev = __atomic_exchange_n((void **) ptr, new_val, __ATOMIC_RELAXED);
++    return true;
++}
++
+ #endif /* ENABLE_SMP_SUPPORT */
+diff --git a/include/drivers/irq/riscv_plic0.h b/include/drivers/irq/riscv_plic0.h
+index 55ff740ba..48fa88c6d 100644
+--- a/include/drivers/irq/riscv_plic0.h
++++ b/include/drivers/irq/riscv_plic0.h
+@@ -17,7 +17,6 @@
+     !defined(CONFIG_PLAT_QEMU_RISCV_VIRT) && \
+     !defined(CONFIG_PLAT_ROCKETCHIP_ZCU102) && \
+     !defined(CONFIG_PLAT_STAR64) && \
+-    !defined(CONFIG_PLAT_CHESHIRE) && \
+     !defined(CONFIG_PLAT_ARIANE)
+ #error "Check if this platform supports a PLIC."
+ #endif
+diff --git a/include/fastpath/fastpath.h b/include/fastpath/fastpath.h
+index 55eb424a4..342fe1db3 100644
+--- a/include/fastpath/fastpath.h
++++ b/include/fastpath/fastpath.h
+@@ -46,8 +46,6 @@ static inline void cancelIPC_fp(tcb_t *dest)
+         endpoint_ptr_set_state(ep_ptr, EPState_Idle);
+     }
+ 
+-    /* we are in BlockedOnReceive, because fastpath_signal explicitly checks for it */
+-    assert(thread_state_get_tsType(dest->tcbState) == ThreadState_BlockedOnReceive);
+     reply_t *reply = REPLY_PTR(thread_state_get_replyObject(dest->tcbState));
+     if (reply != NULL) {
+         reply_unlink(reply, dest);
+diff --git a/include/kernel/boot.h b/include/kernel/boot.h
+index 4b6ae58fe..480f48fe0 100644
+--- a/include/kernel/boot.h
++++ b/include/kernel/boot.h
+@@ -145,16 +145,6 @@ word_t arch_get_n_paging(v_region_t it_veg);
+ 
+ #ifdef ENABLE_SMP_CLOCK_SYNC_TEST_ON_BOOT
+ BOOT_CODE void clock_sync_test(void);
+-
+-/* Delta (in us) allowed in the clock sync test in addition to getTimerPrecision().
+-   On RISC-V, reading the clock goes via mmode. If mmode uses a big lock, that
+-   can take considerable time */
+-#ifdef CONFIG_ARCH_RISCV
+-#define CLOCK_SYNC_DELTA 5
+-#else
+-#define CLOCK_SYNC_DELTA 1
+-#endif
+-
+ #else
+ #define clock_sync_test()
+ #endif
+diff --git a/include/object/reply.h b/include/object/reply.h
+index e87564302..8c3ec5875 100644
+--- a/include/object/reply.h
++++ b/include/object/reply.h
+@@ -13,16 +13,12 @@
+ /* Unlink a reply from its tcb */
+ static inline void reply_unlink(reply_t *reply, tcb_t *tcb)
+ {
+-    /* check that the tcb has a thread state with reply */
+-    assert(thread_state_get_tsType(tcb->tcbState) == ThreadState_BlockedOnReceive ||
+-           thread_state_get_tsType(tcb->tcbState) == ThreadState_BlockedOnReply);
+-
+     /* check the tcb and reply are linked correctly */
+     assert(reply->replyTCB == tcb);
+     assert(thread_state_get_replyObject(tcb->tcbState) == REPLY_REF(reply));
+ 
++    thread_state_ptr_set_replyObject(&tcb->tcbState, REPLY_REF(0));
+     reply->replyTCB = NULL;
+-    /* This means the value of the thread state reply reference no longer matters. */
+     setThreadState(tcb, ThreadState_Inactive);
+ }
+ 
+diff --git a/include/object/structures.h b/include/object/structures.h
+index 6ca259bca..009b75873 100644
+--- a/include/object/structures.h
++++ b/include/object/structures.h
+@@ -304,6 +304,9 @@ struct tcb {
+     /* 16 bytes (12 bytes aarch32) */
+     benchmark_util_t benchmark;
+ #endif
++
++    /* world_id (guardianos) */
++    word_t tcb_world_id;
+ };
+ typedef struct tcb tcb_t;
+ 
+diff --git a/include/smp/ipi.h b/include/smp/ipi.h
+index 64b6cd6f0..9bf2c0e2d 100644
+--- a/include/smp/ipi.h
++++ b/include/smp/ipi.h
+@@ -14,15 +14,36 @@
+ #ifdef ENABLE_SMP_SUPPORT
+ #define MAX_IPI_ARGS    3   /* Maximum number of parameters to remote function */
+ 
+-typedef struct {
+-    word_t count;                   /* IPI barrier for remote call synchronization */
++static volatile struct {
++    word_t count;
+     word_t globalsense;
+-    word_t totalCoreBarrier;        /* number of cores involved in IPI 'in progress' */
+-    IpiRemoteCall_t remoteCall;     /* the remote call being requested */
+-    word_t args[MAX_IPI_ARGS];      /* data to be passed to the remote call function */
+-} ipi_state_t;
+ 
+-void ipi_wait(void);
++    PAD_TO_NEXT_CACHE_LN(sizeof(word_t) + sizeof(word_t));
++} ipiSyncBarrier = {0};                  /* IPI barrier for remote call synchronization */
++
++static volatile word_t totalCoreBarrier; /* number of cores involved in IPI 'in progress' */
++static word_t ipi_args[MAX_IPI_ARGS];    /* data to be passed to the remote call function */
++
++static inline word_t get_ipi_arg(word_t n)
++{
++    assert(n < MAX_IPI_ARGS);
++    return ipi_args[n];
++}
++
++static inline void ipi_wait(word_t cores)
++{
++    word_t localsense = ipiSyncBarrier.globalsense;
++
++    if (__atomic_fetch_add(&ipiSyncBarrier.count, 1, __ATOMIC_ACQ_REL) == cores) {
++        ipiSyncBarrier.count = 0;
++        ipiSyncBarrier.globalsense =
++            ~ipiSyncBarrier.globalsense;
++    }
++
++    while (localsense == ipiSyncBarrier.globalsense) {
++        arch_pause();
++    }
++}
+ 
+ /* Architecture independent function for sending handling pre-hardware-send IPIs */
+ void generic_ipi_send_mask(irq_t ipi, word_t mask, bool_t isBlocking);
+@@ -36,9 +57,6 @@ void ipi_send_mask(irq_t ipi, word_t mask, bool_t isBlocking);
+ /* Hardware implementation for sending IPIs */
+ void ipi_send_target(irq_t irq, word_t cpuTargetList);
+ 
+-/* An architecture/platform should implement this function */
+-void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg2, bool_t irqPath);
+-
+ /* This function switches the core it is called on to the idle thread,
+  * in order to avoid IPI storms. If the core is waiting on the lock, the actual
+  * switch will not occur until the core attempts to obtain the lock, at which
+diff --git a/include/smp/lock.h b/include/smp/lock.h
+index 5347f2f9a..9f9717e3d 100644
+--- a/include/smp/lock.h
++++ b/include/smp/lock.h
+@@ -22,52 +22,86 @@
+ typedef enum {
+     CLHState_Granted = 0,
+     CLHState_Pending
+-} clh_req_state_t;
+-
+-/* Lock request */
+-typedef struct clh_req {
+-    clh_req_state_t state;
+-} ALIGN(L1_CACHE_LINE_SIZE) clh_req_t;
+-
+-/* Our node (called "Process" in the paper) */
+-typedef struct clh_node {
+-    clh_req_t *watch; // Used by predecessor to grant the lock to us.
+-    clh_req_t *myreq; // Used to grant the lock to our successor.
+-    /* This is the software blocking IPI flag */
++} clh_qnode_state_t;
++
++typedef struct clh_qnode {
++    clh_qnode_state_t value;
++
++    PAD_TO_NEXT_CACHE_LN(sizeof(clh_qnode_state_t));
++} clh_qnode_t;
++
++typedef struct clh_qnode_p {
++    clh_qnode_t *node;
++    clh_qnode_t *next;
++    /* This is the software IPI flag */
+     word_t ipi;
+-} ALIGN(L1_CACHE_LINE_SIZE) clh_node_t;
+ 
+-typedef struct clh_lock {
+-    clh_req_t request[CONFIG_MAX_NUM_NODES + 1];
+-    clh_node_t node[CONFIG_MAX_NUM_NODES];
++    PAD_TO_NEXT_CACHE_LN(sizeof(clh_qnode_t *) +
++                         sizeof(clh_qnode_t *) +
++                         sizeof(word_t));
++} clh_qnode_p_t;
+ 
+-    clh_req_t *tail;
++typedef struct clh_lock {
++    clh_qnode_t nodes[CONFIG_MAX_NUM_NODES + 1];
++    clh_qnode_p_t node_owners[CONFIG_MAX_NUM_NODES];
+ 
+-    /* Global IPI state */
+-    ipi_state_t ipi;
+-} ALIGN(EXCL_RES_GRANULE_SIZE) clh_lock_t;
++    clh_qnode_t *head;
++    PAD_TO_NEXT_CACHE_LN(sizeof(clh_qnode_t *));
++} clh_lock_t;
+ 
+ extern clh_lock_t big_kernel_lock;
+ BOOT_CODE void clh_lock_init(void);
+ 
+ static inline bool_t FORCE_INLINE clh_is_ipi_pending(word_t cpu)
+ {
+-    /* Asssure IPI data is accessed only when this flag is set */
+-    return __atomic_load_n(&big_kernel_lock.node[cpu].ipi, __ATOMIC_ACQUIRE);
++    return big_kernel_lock.node_owners[cpu].ipi == 1;
++}
++
++static inline void *sel4_atomic_exchange(void *ptr, bool_t
++                                         irqPath, word_t cpu, int memorder)
++{
++    clh_qnode_t *prev;
++
++    if (memorder == __ATOMIC_RELEASE || memorder == __ATOMIC_ACQ_REL) {
++        __atomic_thread_fence(__ATOMIC_RELEASE);
++    } else if (memorder == __ATOMIC_SEQ_CST) {
++        __atomic_thread_fence(__ATOMIC_SEQ_CST);
++    }
++
++    while (!try_arch_atomic_exchange_rlx(&big_kernel_lock.head,
++                                         (void *) big_kernel_lock.node_owners[cpu].node,
++                                         (void **) &prev)) {
++        if (clh_is_ipi_pending(cpu)) {
++            /* we only handle irq_remote_call_ipi here as other type of IPIs
++             * are async and could be delayed. 'handleIPI' may not return
++             * based on value of the 'irqPath'. */
++            handleIPI(CORE_IRQ_TO_IRQT(cpu, irq_remote_call_ipi), irqPath);
++        }
++
++        arch_pause();
++    }
++
++    if (memorder == __ATOMIC_ACQUIRE || memorder == __ATOMIC_ACQ_REL) {
++        __atomic_thread_fence(__ATOMIC_ACQUIRE);
++    } else if (memorder == __ATOMIC_SEQ_CST) {
++        __atomic_thread_fence(__ATOMIC_SEQ_CST);
++    }
++
++    return prev;
+ }
+ 
+-static inline void FORCE_INLINE clh_lock_acquire(bool_t irqPath)
++static inline void FORCE_INLINE clh_lock_acquire(word_t cpu, bool_t irqPath)
+ {
+-    word_t cpu = getCurrentCPUIndex();
+-    clh_node_t *node = &big_kernel_lock.node[cpu];
++    clh_qnode_t *prev;
++    big_kernel_lock.node_owners[cpu].node->value = CLHState_Pending;
++
++    prev = sel4_atomic_exchange(&big_kernel_lock.head, irqPath, cpu, __ATOMIC_ACQ_REL);
+ 
+-    /* Tell successor to wait */
+-    node->myreq->state = CLHState_Pending;
+-    /* Enqueue our request */
+-    node->watch = __atomic_exchange_n(&big_kernel_lock.tail, node->myreq, __ATOMIC_ACQ_REL);
++    big_kernel_lock.node_owners[cpu].next = prev;
+ 
+-    /* Wait until predecessor finishes */
+-    while (node->watch->state != CLHState_Granted) {
++    /* We do not have an __atomic_thread_fence here as this is already handled by the
++     * atomic_exchange just above */
++    while (big_kernel_lock.node_owners[cpu].next->value != CLHState_Granted) {
+         /* As we are in a loop we need to ensure that any loads of future iterations of the
+          * loop are performed after this one */
+         __atomic_thread_fence(__ATOMIC_ACQUIRE);
+@@ -86,30 +120,27 @@ static inline void FORCE_INLINE clh_lock_acquire(bool_t irqPath)
+     __atomic_thread_fence(__ATOMIC_ACQUIRE);
+ }
+ 
+-static inline void FORCE_INLINE clh_lock_release(void)
++static inline void FORCE_INLINE clh_lock_release(word_t cpu)
+ {
+-    clh_node_t *node = &big_kernel_lock.node[getCurrentCPUIndex()];
+-
+     /* make sure no resource access passes from this point */
+     __atomic_thread_fence(__ATOMIC_RELEASE);
+ 
+-    /* Pass lock to successor */
+-    node->myreq->state = CLHState_Granted;
+-    /* Take ownership of watched request, to use next time we take the lock */
+-    node->myreq = node->watch;
++    big_kernel_lock.node_owners[cpu].node->value = CLHState_Granted;
++    big_kernel_lock.node_owners[cpu].node =
++        big_kernel_lock.node_owners[cpu].next;
+ }
+ 
+ static inline bool_t FORCE_INLINE clh_is_self_in_queue(void)
+ {
+-    return big_kernel_lock.node[getCurrentCPUIndex()].myreq->state == CLHState_Pending;
++    return big_kernel_lock.node_owners[getCurrentCPUIndex()].node->value == CLHState_Pending;
+ }
+ 
+ #define NODE_LOCK(_irqPath) do {                         \
+-    clh_lock_acquire(_irqPath);                          \
++    clh_lock_acquire(getCurrentCPUIndex(), _irqPath);    \
+ } while(0)
+ 
+ #define NODE_UNLOCK do {                                 \
+-    clh_lock_release();                                  \
++    clh_lock_release(getCurrentCPUIndex());              \
+ } while(0)
+ 
+ #define NODE_LOCK_IF(_cond, _irqPath) do {               \
+diff --git a/libsel4/CMakeLists.txt b/libsel4/CMakeLists.txt
+index a75ba8245..61415a7fc 100644
+--- a/libsel4/CMakeLists.txt
++++ b/libsel4/CMakeLists.txt
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: BSD-2-Clause
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ project(libsel4 C)
+ 
+diff --git a/libsel4/arch_include/riscv/interfaces/object-api-arch.xml b/libsel4/arch_include/riscv/interfaces/object-api-arch.xml
+index c5adb0523..41aab5a77 100644
+--- a/libsel4/arch_include/riscv/interfaces/object-api-arch.xml
++++ b/libsel4/arch_include/riscv/interfaces/object-api-arch.xml
+@@ -239,9 +239,9 @@
+             <param dir="in" name="untyped" type="seL4_Untyped"
+             description="Capability to an untyped memory object that will become the pool. Must be 4K bytes."/>
+             <param dir="in" name="root" type="seL4_CNode"
+-            description="CPtr to the CNode that forms the root of the destination CSpace. Must be at a depth equivalent to the wordsize."/>
++            description="CPtr to the CNode that forms the root of the destination CSpace. Must be at a depth of 32."/>
+             <param dir="in" name="index" type="seL4_Word"
+-            description="CPtr to the destination slot. Resolved from the root of the destination CSpace."/>
++            description="CPtr to the CNode that forms the root of the destination CSpace. Must be at a depth of 32."/>
+             <param dir="in" name="depth" type="seL4_Uint8"
+             description="Number of bits of index to resolve to find the destination slot."/>
+             <error name="seL4_DeleteFirst">
+diff --git a/libsel4/include/interfaces/object-api.xml b/libsel4/include/interfaces/object-api.xml
+index 07e5623e5..8025dd563 100644
+--- a/libsel4/include/interfaces/object-api.xml
++++ b/libsel4/include/interfaces/object-api.xml
+@@ -201,6 +201,8 @@
+                 description="Location of the thread's IPC buffer. Must be 512-byte aligned. The IPC buffer may not cross a page boundary."/>
+             <param dir="in" name="bufferFrame" type="seL4_CPtr"
+                 description="Capability to a page containing the thread's IPC buffer."/>
++            <param dir="in" name="world_id" type="seL4_Uint64"
++                description="The thread's world id (guardianos)"/>
+             <error name="seL4_IllegalOperation">
+                 <description>
+                     The <texttt text="_service"/>, <texttt text="bufferFrame"/>, <texttt text="cspace_root"/>, or <texttt text="vspace_root"/> is a CPtr to a capability of the wrong type.
+diff --git a/libsel4/sel4_plat_include/cheshire/sel4/plat/api/constants.h b/libsel4/sel4_plat_include/cheshire/sel4/plat/api/constants.h
+deleted file mode 100644
+index 0b94a0a2b..000000000
+--- a/libsel4/sel4_plat_include/cheshire/sel4/plat/api/constants.h
++++ /dev/null
+@@ -1,9 +0,0 @@
+-/*
+- * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+- *
+- * SPDX-License-Identifier: BSD-2-Clause
+- */
+-
+-#pragma once
+-
+-#include <sel4/config.h>
+diff --git a/llvm.cmake b/llvm.cmake
+index fbba2363d..8286896c5 100644
+--- a/llvm.cmake
++++ b/llvm.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ set(CMAKE_SYSTEM_NAME Generic)
+ # For a generic system this is unused, so define it to something that will be
+diff --git a/src/arch/arm/32/c_traps.c b/src/arch/arm/32/c_traps.c
+index c4a4df8ba..5765172fc 100644
+--- a/src/arch/arm/32/c_traps.c
++++ b/src/arch/arm/32/c_traps.c
+@@ -20,6 +20,8 @@
+ /** DONT_TRANSLATE */
+ void VISIBLE NORETURN restore_user_context(void)
+ {
++    NODE_UNLOCK_IF_HELD;
++
+     word_t cur_thread_reg = (word_t) NODE_STATE(ksCurThread);
+ 
+     c_exit_hook();
+@@ -32,8 +34,6 @@ void VISIBLE NORETURN restore_user_context(void)
+     lazyFPURestore(NODE_STATE(ksCurThread));
+ #endif /* CONFIG_HAVE_FPU */
+ 
+-    NODE_UNLOCK_IF_HELD;
+-
+     if (config_set(CONFIG_ARM_HYPERVISOR_SUPPORT)) {
+         asm volatile(
+             /* Set stack pointer to point at the r0 of the user context. */
+diff --git a/src/arch/arm/32/config.cmake b/src/arch/arm/32/config.cmake
+index 77b0f74e1..88033b7b4 100644
+--- a/src/arch/arm/32/config.cmake
++++ b/src/arch/arm/32/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     DEP "KernelSel4ArchAarch32"
+diff --git a/src/arch/arm/32/head.S b/src/arch/arm/32/head.S
+index aeca85e4f..4bdefed15 100644
+--- a/src/arch/arm/32/head.S
++++ b/src/arch/arm/32/head.S
+@@ -130,7 +130,7 @@ BEGIN_FUNC(_start)
+       * On ARM SMP, kernel_stack_alloc is indexed by CPU ID
+       * to get different stacks for each core
+       */
+-    ldr sp, =kernel_stack_alloc + BIT(CONFIG_KERNEL_STACK_BITS) - 8
++    ldr sp, =kernel_stack_alloc + BIT(CONFIG_KERNEL_STACK_BITS)
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+     /*
+@@ -146,28 +146,19 @@ BEGIN_FUNC(_start)
+     add     sp, sp, r5
+ #endif /* ENABLE_SMP_SUPPORT */
+ 
++    /* Attempt to workaround any known ARM errata. */
++    push {r0-r3,r7-r8}
++    blx arm_errata
++    pop {r0-r3,r7-r8}
++
+     /* Hyp kernel always run in Hyp mode. */
+ #ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
+-    /* Initialise ABORT stack pointer.
+-     * For ARM, the `sp' register is banked between PMODEs, so we configure
+-     * a stack for when we take a exception (see traps.S, where we then switch
+-     * modes and load the real kernel stack). */
++    /* Initialise ABORT stack pointer */
+     cps #PMODE_ABORT
+-    ldr sp, =_abort_stack_top
+-#ifdef ENABLE_SMP_SUPPORT
+-    /* Give each core its own abort stack */
+-    ldr     r5, =4096
+-    mul     r5, r4
+-    add     sp, sp, r5
+-#endif
++    ldr sp, =_breakpoint_stack_top
+     cps #PMODE_SUPERVISOR
+ #endif
+ 
+-    /* Attempt to workaround any known ARM errata. */
+-    push {r0-r3,r7-r8}
+-    blx arm_errata
+-    pop {r0-r3,r7-r8}
+-
+     /* Put the DTB address back on the new stack for init_kernel. */
+     push {r7, r8}
+ 
+diff --git a/src/arch/arm/32/kernel/vspace.c b/src/arch/arm/32/kernel/vspace.c
+index 8a56c524f..4f57027c0 100644
+--- a/src/arch/arm/32/kernel/vspace.c
++++ b/src/arch/arm/32/kernel/vspace.c
+@@ -2547,8 +2547,8 @@ exception_t decodeARMMMUInvocation(word_t invLabel, word_t length, cptr_t cptr,
+         /* Find first free pool */
+         for (i = 0; i < nASIDPools && armKSASIDTable[i]; i++);
+ 
+-        if (unlikely(i == nASIDPools)) {
+-            userError("ASIDControlMakePool: No unallocated pools found.");
++        if (unlikely(i == nASIDPools)) { /* If no unallocated pool is found */
++            userError("ASIDControlMakePool: No free pools found.");
+             current_syscall_error.type = seL4_DeleteFirst;
+ 
+             return EXCEPTION_SYSCALL_ERROR;
+@@ -2729,19 +2729,18 @@ exception_t benchmark_arch_map_logBuffer(word_t frame_cptr)
+ #endif /* CONFIG_KERNEL_LOG_BUFFER */
+ 
+ #ifdef CONFIG_DEBUG_BUILD
+-void kernelPrefetchAbort(word_t pc, word_t lr) VISIBLE;
++void kernelPrefetchAbort(word_t pc) VISIBLE;
+ void kernelDataAbort(word_t pc) VISIBLE;
+ 
+ #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+ 
+ void kernelUndefinedInstruction(word_t pc) VISIBLE;
+ 
+-void kernelPrefetchAbort(word_t pc, word_t lr)
++void kernelPrefetchAbort(word_t pc)
+ {
+     printf("\n\nKERNEL PREFETCH ABORT!\n");
+     printf("Faulting instruction: 0x%"SEL4_PRIx_word"\n", pc);
+     printf("HSR: 0x%"SEL4_PRIx_word"\n", getHSR());
+-    printf("LR: 0x%"SEL4_PRIx_word"\n", lr);
+     halt();
+ }
+ 
+@@ -2764,12 +2763,11 @@ void kernelUndefinedInstruction(word_t pc)
+ 
+ #else /* CONFIG_ARM_HYPERVISOR_SUPPORT */
+ 
+-void kernelPrefetchAbort(word_t pc, word_t lr)
++void kernelPrefetchAbort(word_t pc)
+ {
+     printf("\n\nKERNEL PREFETCH ABORT!\n");
+     printf("Faulting instruction: 0x%"SEL4_PRIx_word"\n", pc);
+     printf("IFSR: 0x%"SEL4_PRIx_word"\n", getIFSR());
+-    printf("LR: 0x%"SEL4_PRIx_word"\n", lr);
+     halt();
+ }
+ 
+@@ -2874,3 +2872,4 @@ void Arch_userStackTrace(tcb_t *tptr)
+     }
+ }
+ #endif
++
+diff --git a/src/arch/arm/32/traps.S b/src/arch/arm/32/traps.S
+index 3fba58b60..a2f795758 100644
+--- a/src/arch/arm/32/traps.S
++++ b/src/arch/arm/32/traps.S
+@@ -114,7 +114,6 @@ BEGIN_FUNC(arm_prefetch_abort_exception)
+ kernel_prefetch_fault:
+ #ifdef CONFIG_DEBUG_BUILD
+     mov r0, r8
+-    mov r1, lr
+     mrc p15, 0, sp, c13, c0, 4
+     blx kernelPrefetchAbort
+     /* Fallthrough to infinite loop should we foolishly return. */
+@@ -133,8 +132,6 @@ END_FUNC(arm_prefetch_abort_exception)
+ BEGIN_FUNC(arm_data_abort_exception)
+     /* Full save/restore, documented in arm_swi_syscall */
+     srsia #PMODE_SUPERVISOR
+-    /* This also loads the Supervisor mode's banked registers, switching away
+-     * from the ABORT stack pointer. See also heads.S where it is set up. */
+     cps #PMODE_SUPERVISOR
+     stmdb sp, {r0-lr}^
+ 
+diff --git a/src/arch/arm/64/c_traps.c b/src/arch/arm/64/c_traps.c
+index 09e84756e..f3fe92067 100644
+--- a/src/arch/arm/64/c_traps.c
++++ b/src/arch/arm/64/c_traps.c
+@@ -18,6 +18,8 @@
+ /** DONT_TRANSLATE */
+ void VISIBLE NORETURN restore_user_context(void)
+ {
++    NODE_UNLOCK_IF_HELD;
++
+     c_exit_hook();
+ 
+ #ifdef ARM_CP14_SAVE_AND_RESTORE_NATIVE_THREADS
+@@ -28,8 +30,6 @@ void VISIBLE NORETURN restore_user_context(void)
+     lazyFPURestore(NODE_STATE(ksCurThread));
+ #endif /* CONFIG_HAVE_FPU */
+ 
+-    NODE_UNLOCK_IF_HELD;
+-
+     asm volatile(
+         "mov     sp, %0                     \n"
+ 
+diff --git a/src/arch/arm/64/config.cmake b/src/arch/arm/64/config.cmake
+index 131b283d4..93a1158fe 100644
+--- a/src/arch/arm/64/config.cmake
++++ b/src/arch/arm/64/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     DEP "KernelSel4ArchAarch64"
+diff --git a/src/arch/arm/64/kernel/vspace.c b/src/arch/arm/64/kernel/vspace.c
+index d907b084c..aa3d565ce 100644
+--- a/src/arch/arm/64/kernel/vspace.c
++++ b/src/arch/arm/64/kernel/vspace.c
+@@ -1745,8 +1745,7 @@ exception_t decodeARMMMUInvocation(word_t invLabel, word_t length, cptr_t cptr,
+         /* Find first free pool */
+         for (i = 0; i < nASIDPools && armKSASIDTable[i]; i++);
+ 
+-        if (unlikely(i == nASIDPools)) {
+-            userError("ASIDControlMakePool: No unallocated pools found.");
++        if (unlikely(i == nASIDPools)) { /* If no unallocated pool is found */
+             current_syscall_error.type = seL4_DeleteFirst;
+ 
+             return EXCEPTION_SYSCALL_ERROR;
+@@ -1999,3 +1998,4 @@ exception_t benchmark_arch_map_logBuffer(word_t frame_cptr)
+     return EXCEPTION_NONE;
+ }
+ #endif /* CONFIG_KERNEL_LOG_BUFFER */
++
+diff --git a/src/arch/arm/armv/armv7-a/config.cmake b/src/arch/arm/armv/armv7-a/config.cmake
+index cf1e75b4d..8b24738b8 100644
+--- a/src/arch/arm/armv/armv7-a/config.cmake
++++ b/src/arch/arm/armv/armv7-a/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     DEP "KernelArchArmV7a"
+diff --git a/src/arch/arm/armv/armv8-a/config.cmake b/src/arch/arm/armv/armv8-a/config.cmake
+index 09de51d27..b4de9c37e 100644
+--- a/src/arch/arm/armv/armv8-a/config.cmake
++++ b/src/arch/arm/armv/armv8-a/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     DEP "KernelArchArmV8a"
+diff --git a/src/arch/arm/common_arm.lds b/src/arch/arm/common_arm.lds
+index 4ac3a882e..72f69c453 100644
+--- a/src/arch/arm/common_arm.lds
++++ b/src/arch/arm/common_arm.lds
+@@ -64,12 +64,10 @@ SECTIONS
+         *(.bss)
+         *(COMMON) /* fallback in case '-fno-common' is not used */
+ 
+-#if defined(CONFIG_ARCH_AARCH32) && !defined(CONFIG_ARM_HYPERVISOR_SUPPORT)
+-        /* 4k abort stack, needed for PMODE_ABORT on ARM32 */
+-        _abort_stack_bottom = .;
+-        . = . + 4K * CONFIG_MAX_NUM_NODES;
+-        _abort_stack_top = .;
+-#endif
++        /* 4k breakpoint stack */
++        _breakpoint_stack_bottom = .;
++        . = . + 4K;
++        _breakpoint_stack_top = .;
+ 
+         /* large data such as the globals frame and global PD */
+         *(.bss.aligned)
+diff --git a/src/arch/arm/config.cmake b/src/arch/arm/config.cmake
+index 53460f6f0..238a78290 100644
+--- a/src/arch/arm/config.cmake
++++ b/src/arch/arm/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ if(KernelSel4ArchAarch32)
+     set_property(TARGET kernel_config_target APPEND PROPERTY TOPLEVELTYPES pde_C)
+@@ -218,21 +218,6 @@ config_option(
+     DEPENDS "NOT KernelVerificationBuild; KernelSel4ArchAarch64"
+ )
+ 
+-config_choice(
+-    KernelArmTLSReg
+-    ARM_TLS_REG
+-    "Which TLS register is used for Kernel TLS syscalls and invocations. \
+-    The usual registers used by gnu-elf ABIs are: \
+-    - on aarch32: tpidruro \
+-    - on aarch64: tpidru."
+-    "tpidru;KernelArmTLSRegTPIDRU;ARM_TLS_REG_TPIDRU;KernelArchARM"
+-    "tpidruro;KernelArmTLSRegTPIDRURO;ARM_TLS_REG_TPIDRURO;KernelArchARM"
+-)
+-
+-if(KernelArmTLSRegTPIDRURO)
+-    set(KernelSetTLSBaseSelf ON)
+-endif()
+-
+ if(KernelAArch32FPUEnableContextSwitch OR KernelSel4ArchAarch64)
+     set(KernelHaveFPU ON)
+ endif()
+diff --git a/src/arch/arm/kernel/boot.c b/src/arch/arm/kernel/boot.c
+index 830ef8451..1c8decc70 100644
+--- a/src/arch/arm/kernel/boot.c
++++ b/src/arch/arm/kernel/boot.c
+@@ -34,7 +34,7 @@
+  * spinning until the primary core has initialized all kernel structures and
+  * then set it to 1.
+  */
+-BOOT_BSS static volatile _Atomic int node_boot_lock;
++BOOT_BSS static volatile int node_boot_lock;
+ #endif /* ENABLE_SMP_SUPPORT */
+ 
+ BOOT_BSS static region_t reserved[NUM_RESERVED_REGIONS];
+@@ -206,14 +206,9 @@ BOOT_CODE static bool_t init_cpu(void)
+      * On ARM SMP, the array index here is the CPU ID
+      */
+     word_t stack_top = ((word_t) kernel_stack_alloc[CURRENT_CPU_INDEX()]) + BIT(CONFIG_KERNEL_STACK_BITS);
+-#ifdef ENABLE_SMP_SUPPORT
+-#ifdef CONFIG_ARCH_AARCH64
++#if defined(ENABLE_SMP_SUPPORT) && defined(CONFIG_ARCH_AARCH64)
+     /* the least 12 bits are used to store logical core ID */
+     stack_top |= getCurrentCPUIndex();
+-#elif defined(CONFIG_ARCH_AARCH32)
+-    /* Stack address encodes core ID, ensure it is in the right region */
+-    stack_top -= 8;
+-#endif
+ #endif
+     setKernelStack(stack_top);
+ 
+diff --git a/src/arch/arm/machine/gic_v2.c b/src/arch/arm/machine/gic_v2.c
+index 50b2e30a1..a5b9282e7 100644
+--- a/src/arch/arm/machine/gic_v2.c
++++ b/src/arch/arm/machine/gic_v2.c
+@@ -34,7 +34,7 @@ volatile struct gic_cpu_iface_map *const gic_cpuiface =
+     (volatile struct gic_cpu_iface_map *)(GIC_V2_CONTROLLER_PPTR);
+ #endif /* GIC_CONTROLLER_PPTR */
+ 
+-word_t active_irq[CONFIG_MAX_NUM_NODES];
++word_t active_irq[CONFIG_MAX_NUM_NODES] = {IRQ_NONE};
+ 
+ /* Get the target id for this processor. We rely on the constraint that the registers
+  * for PPI are read only and return only the current processor as the target.
+@@ -171,7 +171,6 @@ BOOT_CODE void initIRQController(void)
+ 
+ BOOT_CODE void cpu_initLocalIRQController(void)
+ {
+-    active_irq[CURRENT_CPU_INDEX()] = IRQ_NONE;
+     cpu_iface_init();
+ }
+ 
+diff --git a/src/arch/arm/machine/gic_v3.c b/src/arch/arm/machine/gic_v3.c
+index 68e6e0cfd..37aacef0b 100644
+--- a/src/arch/arm/machine/gic_v3.c
++++ b/src/arch/arm/machine/gic_v3.c
+@@ -34,7 +34,7 @@
+ volatile struct gic_dist_map *const gic_dist = (volatile struct gic_dist_map *)(GICD_PPTR);
+ volatile void *const gicr_base = (volatile uint8_t *)(GICR_PPTR);
+ 
+-word_t active_irq[CONFIG_MAX_NUM_NODES];
++word_t active_irq[CONFIG_MAX_NUM_NODES] = {IRQ_NONE};
+ volatile struct gic_rdist_map *gic_rdist_map[CONFIG_MAX_NUM_NODES] = { 0 };
+ volatile struct gic_rdist_sgi_ppi_map *gic_rdist_sgi_ppi_map[CONFIG_MAX_NUM_NODES] = { 0 };
+ 
+@@ -123,7 +123,7 @@ static void gicv3_redist_wait_for_rwp(void)
+ 
+ static void gicv3_enable_sre(void)
+ {
+-    word_t val = 0;
++    uint32_t val = 0;
+ 
+     /* ICC_SRE_EL1 */
+     SYSTEM_READ_WORD(ICC_SRE_EL1, val);
+@@ -168,7 +168,7 @@ BOOT_CODE static void dist_init(void)
+     }
+ 
+     /* Turn on the distributor */
+-    gic_dist->ctlr = GICD_CTLR_ARE_NS | GICD_CTLR_ENABLE_G1NS | GICD_CTLR_ENABLE_G0;
++    gic_dist->ctlr = GICD_CTL_ENABLE | GICD_CTLR_ARE_NS | GICD_CTLR_ENABLE_G1NS | GICD_CTLR_ENABLE_G0;
+     gicv3_dist_wait_for_rwp();
+ 
+     /* Route all global IRQs to this CPU */
+@@ -265,7 +265,7 @@ BOOT_CODE static void gicr_init(void)
+ 
+ BOOT_CODE static void cpu_iface_init(void)
+ {
+-    word_t icc_ctlr = 0;
++    uint32_t icc_ctlr = 0;
+ 
+     /* Enable system registers */
+     gicv3_enable_sre();
+@@ -337,7 +337,6 @@ BOOT_CODE void cpu_initLocalIRQController(void)
+     SYSTEM_READ_WORD(MPIDR, mpidr);
+ 
+     mpidr_map[CURRENT_CPU_INDEX()] = mpidr;
+-    active_irq[CURRENT_CPU_INDEX()] = IRQ_NONE;
+ 
+     gicr_init();
+     cpu_iface_init();
+diff --git a/src/arch/arm/machine/l2c_310.c b/src/arch/arm/machine/l2c_310.c
+index 276b4d252..b776732c7 100644
+--- a/src/arch/arm/machine/l2c_310.c
++++ b/src/arch/arm/machine/l2c_310.c
+@@ -340,9 +340,6 @@ BOOT_CODE void initL2Cache(void)
+     /* Direct register access */
+     l2cc->control.control |= CTRL_CTRL_EN;
+ #endif /* TI_MSHIELD */
+-    /* Guarantee that the setACTLR() doesn't start executing until the completion
+-     * of the l2cc register updates */
+-    dsb();
+ 
+ #if defined(CONFIG_ARM_CORTEX_A9) && defined(CONFIG_ENABLE_A9_PREFETCHER)
+     /* Set bit 1 in the ACTLR, which on the cortex-a9 is the l2 prefetch enable
+@@ -355,30 +352,19 @@ BOOT_CODE void initL2Cache(void)
+ 
+ static inline void L2_cacheSync(void)
+ {
+-    /* Avoid normal memory writes being reordered with device memory writes */
+     dmb();
+     l2cc->maintenance.cache_sync = 0;
+     while (l2cc->maintenance.cache_sync & MAINTENANCE_PENDING);
+-    /* Wait till the L2 cache operation has completed and avoid later memoy
+-     * operations being reordered to before this point */
+-    dsb();
+ }
+ 
+-/*
+- * Errata 727915 applies for PL310 revisions r2p0, r3p0, fixed in r3p1.
+- * i.MX6 has r3p1, so is not affected.
+- * If a new write arrives during the clean & invalidate operation,
+- * there is a small chance it will get lost.
+- * The same is true when doing separate clean and invalidate operations,
+- * hence that is not a proper work-around and worse than the errata.
+- */
+ void plat_cleanInvalidateL2Cache(void)
+ {
+     if (!config_set(CONFIG_DEBUG_DISABLE_L2_CACHE)) {
+-        /* Avoid normal memory writes being reordered with device memory writes */
+-        dmb();
+-        l2cc->maintenance.clean_inv_way = 0xffff;
+-        while (l2cc->maintenance.clean_inv_way);
++        l2cc->maintenance.clean_way = 0xffff;
++        while (l2cc->maintenance.clean_way);
++        L2_cacheSync();
++        l2cc->maintenance.inv_way = 0xffff;
++        while (l2cc->maintenance.inv_way);
+         L2_cacheSync();
+     }
+ }
+@@ -386,8 +372,6 @@ void plat_cleanInvalidateL2Cache(void)
+ void plat_cleanCache(void)
+ {
+ #ifndef CONFIG_DEBUG_DISABLE_L2_CACHE
+-    /* Avoid normal memory writes being reordered with device memory writes */
+-    dmb();
+     /* Clean by way. */
+     l2cc->maintenance.clean_way = 0xffff;
+     while (l2cc->maintenance.clean_way & 0xffff);
+@@ -401,8 +385,6 @@ void plat_cleanL2Range(paddr_t start, paddr_t end)
+     /* Documentation specifies this as the only possible line size */
+     assert(((l2cc->id.cache_type >> 12) & 0x3) == 0x0);
+ 
+-    /* Avoid normal memory writes being reordered with device memory writes */
+-    dmb();
+     for (start = L2_LINE_START(start);
+          start != L2_LINE_START(end + L2_LINE_SIZE);
+          start += L2_LINE_SIZE) {
+@@ -419,10 +401,9 @@ void plat_invalidateL2Range(paddr_t start, paddr_t end)
+     /* Documentation specifies this as the only possible line size */
+     assert(((l2cc->id.cache_type >> 12) & 0x3) == 0x0);
+ 
+-    /* Avoid normal memory writes being reordered with device memory writes */
+-    dmb();
+     /* We assume that if this is a partial line that whoever is calling us
+      * has already done the clean, so we just blindly invalidate all the lines */
++
+     for (start = L2_LINE_START(start);
+          start != L2_LINE_START(end + L2_LINE_SIZE);
+          start += L2_LINE_SIZE) {
+@@ -439,12 +420,13 @@ void plat_cleanInvalidateL2Range(paddr_t start, paddr_t end)
+     /* Documentation specifies this as the only possible line size */
+     assert(((l2cc->id.cache_type >> 12) & 0x3) == 0x0);
+ 
+-    /* Avoid normal memory writes being reordered with device memory writes */
+-    dmb();
+     for (start = L2_LINE_START(start);
+          start != L2_LINE_START(end + L2_LINE_SIZE);
+          start += L2_LINE_SIZE) {
+-        l2cc->maintenance.clean_inv_pa = start;
++        /* Work around an errata and call the clean and invalidate separately */
++        l2cc->maintenance.clean_pa = start;
++        dmb();
++        l2cc->maintenance.inv_pa = start;
+         /* do not need to wait for every invalidate as 310 is atomic */
+     }
+     L2_cacheSync();
+diff --git a/src/arch/arm/platform_gen.h.in b/src/arch/arm/platform_gen.h.in
+index 217933a05..bfb0c0bf6 100644
+--- a/src/arch/arm/platform_gen.h.in
++++ b/src/arch/arm/platform_gen.h.in
+@@ -16,7 +16,7 @@
+ 
+ enum IRQConstants {
+     maxIRQ                      = @CONFIGURE_MAX_IRQ@
+-};
++} platform_interrupt_t;
+ 
+ #define IRQ_CNODE_SLOT_BITS (@CONFIGURE_IRQ_SLOT_BITS@)
+ 
+diff --git a/src/arch/arm/smp/ipi.c b/src/arch/arm/smp/ipi.c
+index 96d2c9e8a..dcbe6c737 100644
+--- a/src/arch/arm/smp/ipi.c
++++ b/src/arch/arm/smp/ipi.c
+@@ -11,12 +11,28 @@
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+ 
+-void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg2, bool_t irqPath)
++static IpiModeRemoteCall_t remoteCall;   /* the remote call being requested */
++
++static inline void init_ipi_args(IpiRemoteCall_t func,
++                                 word_t data1, word_t data2, word_t data3,
++                                 word_t mask)
++{
++    remoteCall = (IpiModeRemoteCall_t)func;
++    ipi_args[0] = data1;
++    ipi_args[1] = data2;
++    ipi_args[2] = data3;
++
++    /* get number of cores involved in this IPI */
++    totalCoreBarrier = popcountl(mask);
++}
++
++static void handleRemoteCall(IpiModeRemoteCall_t call, word_t arg0,
++                             word_t arg1, word_t arg2, bool_t irqPath)
+ {
+     /* we gets spurious irq_remote_call_ipi calls, e.g. when handling IPI
+      * in lock while hardware IPI is pending. Guard against spurious IPIs! */
+     if (clh_is_ipi_pending(getCurrentCPUIndex())) {
+-        switch (call) {
++        switch ((IpiRemoteCall_t)call) {
+         case IpiRemoteCall_Stall:
+             ipiStallCoreCallback(irqPath);
+             break;
+@@ -57,8 +73,8 @@ void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg
+             break;
+         }
+ 
+-        big_kernel_lock.node[getCurrentCPUIndex()].ipi = 0;
+-        ipi_wait();
++        big_kernel_lock.node_owners[getCurrentCPUIndex()].ipi = 0;
++        ipi_wait(totalCoreBarrier);
+     }
+ }
+ 
+diff --git a/src/arch/riscv/c_traps.c b/src/arch/riscv/c_traps.c
+index 86c7ebe90..3b7a541d4 100644
+--- a/src/arch/riscv/c_traps.c
++++ b/src/arch/riscv/c_traps.c
+@@ -23,6 +23,7 @@ void VISIBLE NORETURN restore_user_context(void)
+ {
+     word_t cur_thread_reg = (word_t) NODE_STATE(ksCurThread)->tcbArch.tcbContext.registers;
+     c_exit_hook();
++    NODE_UNLOCK_IF_HELD;
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+     word_t sp = read_sscratch();
+@@ -36,8 +37,6 @@ void VISIBLE NORETURN restore_user_context(void)
+     set_tcb_fs_state(NODE_STATE(ksCurThread), isFpuEnable());
+ #endif
+ 
+-    NODE_UNLOCK_IF_HELD;
+-
+     asm volatile(
+         "mv t0, %[cur_thread]       \n"
+         LOAD_S " ra, (0*%[REGSIZE])(t0)  \n"
+@@ -109,15 +108,6 @@ void VISIBLE NORETURN c_handle_interrupt(void)
+ 
+ void VISIBLE NORETURN c_handle_exception(void)
+ {
+-#ifdef CONFIG_DEBUG_BUILD
+-    if (read_sstatus() & SSTATUS_SPP) {
+-        printf("\n\nKERNEL ABORT (exception within s-mode)!\n");
+-        printf("scause: 0x%"SEL4_PRIx_word", stval: 0x%"SEL4_PRIx_word"\n",
+-               read_scause(), read_stval());
+-        halt();
+-    }
+-#endif
+-
+     NODE_LOCK_SYS;
+ 
+     c_entry_hook();
+diff --git a/src/arch/riscv/common_riscv.lds b/src/arch/riscv/common_riscv.lds
+index d712df35e..b45368c6d 100644
+--- a/src/arch/riscv/common_riscv.lds
++++ b/src/arch/riscv/common_riscv.lds
+@@ -87,6 +87,11 @@ SECTIONS
+         *(.bss)
+         *(COMMON) /* fallback in case '-fno-common' is not used */
+ 
++        /* 4k breakpoint stack */
++        _breakpoint_stack_bottom = .;
++        . = . + 4K;
++        _breakpoint_stack_top = .;
++
+         /* large data such as the globals frame and global PD */
+         *(.bss.aligned)
+ #if defined(CONFIG_PLAT_ROCKETCHIP_ZCU102)
+diff --git a/src/arch/riscv/config.cmake b/src/arch/riscv/config.cmake
+index 2e369ab26..1179ece98 100644
+--- a/src/arch/riscv/config.cmake
++++ b/src/arch/riscv/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ config_string(
+     KernelPTLevels PT_LEVELS "Number of page \
+@@ -15,25 +15,15 @@ config_string(
+     DEPENDS "KernelArchRiscV"
+ )
+ 
+-set(_KernelRiscvExtD ON)
+-set(_KernelRiscvExtF ON)
+-if(LLVM_TOOLCHAIN AND KernelSel4ArchRiscV32)
+-    # Versions of clang we support can't compile for D double width floating
+-    # point. But we've found that having F but not D still leads to errors with
+-    # code that assumes if any floating point is enabled, both F and D are enabled.
+-    set(_KernelRiscvExtD OFF)
+-    set(_KernelRiscvExtF OFF)
+-endif()
+-
+ config_option(
+     KernelRiscvExtF RISCV_EXT_F "RISC-V extension for single-precision floating-point"
+-    DEFAULT ${_KernelRiscvExtF}
++    DEFAULT OFF
+     DEPENDS "KernelArchRiscV"
+ )
+ 
+ config_option(
+     KernelRiscvExtD RISCV_EXT_D "RISC-V extension for double-precision floating-point"
+-    DEFAULT ${_KernelRiscvExtD}
++    DEFAULT OFF
+     DEPENDS "KernelArchRiscV"
+ )
+ 
+diff --git a/src/arch/riscv/kernel/boot.c b/src/arch/riscv/kernel/boot.c
+index 98eb3a633..8b99f6989 100644
+--- a/src/arch/riscv/kernel/boot.c
++++ b/src/arch/riscv/kernel/boot.c
+@@ -27,7 +27,7 @@
+  * spinning until the primary core has initialized all kernel structures and
+  * then set it to 1.
+  */
+-BOOT_BSS static volatile _Atomic word_t node_boot_lock;
++BOOT_BSS static volatile word_t node_boot_lock;
+ #endif
+ 
+ BOOT_BSS static region_t res_reg[NUM_RESERVED_REGIONS];
+@@ -422,7 +422,7 @@ static BOOT_CODE bool_t try_init_kernel(
+         printf("ERROR: could not create initial thread\n");
+         return false;
+     }
+-
++    
+     init_core_state(initial);
+ 
+     /* convert the remaining free memory into UT objects and provide the caps */
+diff --git a/src/arch/riscv/kernel/vspace.c b/src/arch/riscv/kernel/vspace.c
+index d6365fcbd..e1b1cfe3f 100644
+--- a/src/arch/riscv/kernel/vspace.c
++++ b/src/arch/riscv/kernel/vspace.c
+@@ -91,10 +91,10 @@ BOOT_CODE void map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_righ
+     kernel_root_pageTable[RISCV_GET_PT_INDEX(vaddr, 0)] = pte_next(paddr, true);
+ #else
+     if (vaddr >= KDEV_BASE) {
+-        /* Map devices in level 1 page table */
++        /* Map devices in 2nd-level page table */
+         paddr = ROUND_DOWN(paddr, RISCV_GET_LVL_PGSIZE_BITS(1));
+         assert((paddr % RISCV_GET_LVL_PGSIZE(1)) == 0);
+-        kernel_image_level1_dev_pt[RISCV_GET_PT_INDEX(vaddr, 1)] = pte_next(paddr, true);
++        kernel_image_level2_dev_pt[RISCV_GET_PT_INDEX(vaddr, 1)] = pte_next(paddr, true);
+     } else {
+         paddr = ROUND_DOWN(paddr, RISCV_GET_LVL_PGSIZE_BITS(0));
+         assert((paddr % RISCV_GET_LVL_PGSIZE(0)) == 0);
+@@ -108,8 +108,6 @@ BOOT_CODE VISIBLE void map_kernel_window(void)
+     /* mapping of KERNEL_ELF_BASE (virtual address) to kernel's
+      * KERNEL_ELF_PHYS_BASE  */
+     assert(CONFIG_PT_LEVELS > 1 && CONFIG_PT_LEVELS <= 4);
+-    /* Kernel image finishes before KDEV_BASE */
+-    assert(KDEV_BASE >= (word_t)ki_end);
+ 
+     /* kernel window starts at PPTR_BASE */
+     word_t pptr = PPTR_BASE;
+@@ -136,19 +134,19 @@ BOOT_CODE VISIBLE void map_kernel_window(void)
+     paddr += RISCV_GET_LVL_PGSIZE(0);
+ #ifdef CONFIG_KERNEL_LOG_BUFFER
+     kernel_root_pageTable[RISCV_GET_PT_INDEX(KS_LOG_PPTR, 0)] =
+-        pte_next(kpptr_to_paddr(kernel_image_level1_log_buffer_pt), false);
++        pte_next(kpptr_to_paddr(kernel_image_level2_log_buffer_pt), false);
+ #endif
+ #else
+     word_t index = 0;
+     /* The kernel image is mapped twice, locating the two indexes in the
+-     * root page table, pointing them to the same level 1 page table.
++     * root page table, pointing them to the same second level page table.
+      */
+     kernel_root_pageTable[RISCV_GET_PT_INDEX(KERNEL_ELF_PADDR_BASE + PPTR_BASE_OFFSET, 0)] =
+-        pte_next(kpptr_to_paddr(kernel_image_level1_pt), false);
++        pte_next(kpptr_to_paddr(kernel_image_level2_pt), false);
+     kernel_root_pageTable[RISCV_GET_PT_INDEX(pptr, 0)] =
+-        pte_next(kpptr_to_paddr(kernel_image_level1_pt), false);
++        pte_next(kpptr_to_paddr(kernel_image_level2_pt), false);
+     while (pptr < PPTR_TOP + RISCV_GET_LVL_PGSIZE(0)) {
+-        kernel_image_level1_pt[index] = pte_next(paddr, true);
++        kernel_image_level2_pt[index] = pte_next(paddr, true);
+         index++;
+         pptr += RISCV_GET_LVL_PGSIZE(1);
+         paddr += RISCV_GET_LVL_PGSIZE(1);
+@@ -156,7 +154,7 @@ BOOT_CODE VISIBLE void map_kernel_window(void)
+ 
+     /* Map kernel device page table */
+     kernel_root_pageTable[RISCV_GET_PT_INDEX(KDEV_BASE, 0)] =
+-        pte_next(kpptr_to_paddr(kernel_image_level1_dev_pt), false);
++        pte_next(kpptr_to_paddr(kernel_image_level2_dev_pt), false);
+ #endif
+ 
+     /* There should be free space where we put device mapping */
+@@ -598,6 +596,15 @@ void setVMRoot(tcb_t *tcb)
+         return;
+     }
+ 
++    //printf("------CONTEXT SWITCH------\n");
++    uint64_t guardianid;
++    // Write the new id in the CSR (guardianos)
++    asm volatile("csrw 0x5c0, %0" :: "r"(tcb->tcb_world_id));
++
++    // Debug, check the value of the guardianid
++    asm volatile("csrr %0, 0x5c0" : "=r"(guardianid));
++    //printf("[DEBUG] guardianid (after): %llu\n", guardianid);
++    
+     setVSpaceRoot(addrFromPPtr(lvl1pt), asid);
+ }
+ 
+@@ -976,7 +983,7 @@ exception_t decodeRISCVMMUInvocation(word_t label, word_t length, cptr_t cptr,
+         for (i = 0; i < nASIDPools && riscvKSASIDTable[i]; i++);
+ 
+         if (i == nASIDPools) {
+-            userError("ASIDControlMakePool: No unallocated pools found.");
++            /* no unallocated pool is found */
+             current_syscall_error.type = seL4_DeleteFirst;
+ 
+             return EXCEPTION_SYSCALL_ERROR;
+@@ -1227,12 +1234,12 @@ exception_t benchmark_arch_map_logBuffer(word_t frame_cptr)
+ #if __riscv_xlen == 32
+     paddr_t physical_address = ksUserLogBuffer;
+     for (word_t i = 0; i < BIT(PT_INDEX_BITS); i += 1) {
+-        kernel_image_level1_log_buffer_pt[i] = pte_next(physical_address, true);
++        kernel_image_level2_log_buffer_pt[i] = pte_next(physical_address, true);
+         physical_address += BIT(PAGE_BITS);
+     }
+     assert(physical_address - ksUserLogBuffer == BIT(seL4_LargePageBits));
+ #else
+-    kernel_image_level1_dev_pt[RISCV_GET_PT_INDEX(KS_LOG_PPTR, 1)] = pte_next(ksUserLogBuffer, true);
++    kernel_image_level2_dev_pt[RISCV_GET_PT_INDEX(KS_LOG_PPTR, 1)] = pte_next(ksUserLogBuffer, true);
+ #endif
+ 
+     sfence();
+diff --git a/src/arch/riscv/machine/hardware.c b/src/arch/riscv/machine/hardware.c
+index faad56071..86e06d3a1 100644
+--- a/src/arch/riscv/machine/hardware.c
++++ b/src/arch/riscv/machine/hardware.c
+@@ -273,5 +273,5 @@ BOOT_CODE void initIRQController(void)
+ static inline void handleSpuriousIRQ(void)
+ {
+     /* Do nothing */
+-    printf("Spurious IRQ!! SIP 0x%"SEL4_PRIx_word", SIE 0x%"SEL4_PRIx_word"\n", read_sip(), read_sie());
++    printf("Superior IRQ!! SIP %lx\n", read_sip());
+ }
+diff --git a/src/arch/riscv/model/statedata.c b/src/arch/riscv/model/statedata.c
+index 2d3836753..e0cc5a733 100644
+--- a/src/arch/riscv/model/statedata.c
++++ b/src/arch/riscv/model/statedata.c
+@@ -21,10 +21,10 @@ asid_pool_t *riscvKSASIDTable[BIT(asidHighBits)];
+ pte_t kernel_root_pageTable[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
+ 
+ #if __riscv_xlen != 32
+-pte_t kernel_image_level1_pt[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
+-pte_t kernel_image_level1_dev_pt[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
++pte_t kernel_image_level2_pt[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
++pte_t kernel_image_level2_dev_pt[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
+ #elif defined(CONFIG_KERNEL_LOG_BUFFER)
+-pte_t kernel_image_level1_log_buffer_pt[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
++pte_t kernel_image_level2_log_buffer_pt[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));
+ #endif
+ 
+ SMP_STATE_DEFINE(core_map_t, coreMap);
+diff --git a/src/arch/riscv/platform_gen.h.in b/src/arch/riscv/platform_gen.h.in
+index 95cead6cc..491c01994 100644
+--- a/src/arch/riscv/platform_gen.h.in
++++ b/src/arch/riscv/platform_gen.h.in
+@@ -35,7 +35,7 @@ enum IRQConstants {
+ #endif
+     KERNEL_TIMER_IRQ,
+     maxIRQ = KERNEL_TIMER_IRQ,
+-};
++} platform_interrupt_t;
+ 
+ enum irqNumbers {
+     irqInvalid = 0
+diff --git a/src/arch/riscv/smp/ipi.c b/src/arch/riscv/smp/ipi.c
+index e716b6566..bb004388d 100644
+--- a/src/arch/riscv/smp/ipi.c
++++ b/src/arch/riscv/smp/ipi.c
+@@ -11,14 +11,30 @@
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+ 
+-static volatile irq_t ipiIrq[CONFIG_MAX_NUM_NODES];
++/* the remote call being requested */
++static volatile IpiRemoteCall_t  remoteCall;
++static volatile irq_t            ipiIrq[CONFIG_MAX_NUM_NODES];
+ 
+-void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg2, bool_t irqPath)
++static inline void init_ipi_args(IpiRemoteCall_t func,
++                                 word_t data1, word_t data2, word_t data3,
++                                 word_t mask)
++{
++    remoteCall = func;
++    ipi_args[0] = data1;
++    ipi_args[1] = data2;
++    ipi_args[2] = data3;
++
++    /* get number of cores involved in this IPI */
++    totalCoreBarrier = popcountl(mask);
++}
++
++static void handleRemoteCall(IpiRemoteCall_t call, word_t arg0,
++                             word_t arg1, word_t arg2, bool_t irqPath)
+ {
+     /* we gets spurious irq_remote_call_ipi calls, e.g. when handling IPI
+      * in lock while hardware IPI is pending. Guard against spurious IPIs! */
+     if (clh_is_ipi_pending(getCurrentCPUIndex())) {
+-        switch (call) {
++        switch ((IpiRemoteCall_t)call) {
+         case IpiRemoteCall_Stall:
+             ipiStallCoreCallback(irqPath);
+             break;
+@@ -34,20 +50,21 @@ void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg
+             break;
+         }
+ 
+-        big_kernel_lock.node[getCurrentCPUIndex()].ipi = 0;
++        big_kernel_lock.node_owners[getCurrentCPUIndex()].ipi = 0;
+         ipiIrq[getCurrentCPUIndex()] = irqInvalid;
+-        ipi_wait();
++        ipi_wait(totalCoreBarrier);
+     }
+ }
+ 
+ void ipi_send_mask(irq_t ipi, word_t mask, bool_t isBlocking)
+ {
++
+     generic_ipi_send_mask(ipi, mask, isBlocking);
+ }
+ 
+ irq_t ipi_get_irq(void)
+ {
+-    assert(!(ipiIrq[getCurrentCPUIndex()] == irqInvalid && clh_is_ipi_pending(getCurrentCPUIndex())));
++    assert(!(ipiIrq[getCurrentCPUIndex()] == irqInvalid && big_kernel_lock.node_owners[getCurrentCPUIndex()].ipi == 1));
+     return ipiIrq[getCurrentCPUIndex()];
+ }
+ 
+@@ -65,7 +82,7 @@ void ipi_send_target(irq_t irq, word_t hart_id)
+     assert(core_id < CONFIG_MAX_NUM_NODES);
+ 
+     assert((ipiIrq[core_id] == irqInvalid) || (ipiIrq[core_id] == irq_reschedule_ipi) ||
+-           (ipiIrq[core_id] == irq_remote_call_ipi && !clh_is_ipi_pending(core_id)));
++           (ipiIrq[core_id] == irq_remote_call_ipi && big_kernel_lock.node_owners[core_id].ipi == 0));
+ 
+     ipiIrq[core_id] = irq;
+     fence_rw_rw();
+diff --git a/src/arch/x86/32/config.cmake b/src/arch/x86/32/config.cmake
+index 4eb7d5eb9..10d231fa4 100644
+--- a/src/arch/x86/32/config.cmake
++++ b/src/arch/x86/32/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     DEP "KernelSel4ArchIA32"
+diff --git a/src/arch/x86/64/c_traps.c b/src/arch/x86/64/c_traps.c
+index 7d8617a0f..20735184a 100644
+--- a/src/arch/x86/64/c_traps.c
++++ b/src/arch/x86/64/c_traps.c
+@@ -208,9 +208,8 @@ static void NORETURN restore_vmx(void)
+ 
+ void VISIBLE NORETURN restore_user_context(void)
+ {
+-    c_exit_hook();
+-
+     NODE_UNLOCK_IF_HELD;
++    c_exit_hook();
+ 
+     /* we've now 'exited' the kernel. If we have a pending interrupt
+      * we should 'enter' it again */
+diff --git a/src/arch/x86/64/config.cmake b/src/arch/x86/64/config.cmake
+index 5352e66c4..fa81aa2e1 100644
+--- a/src/arch/x86/64/config.cmake
++++ b/src/arch/x86/64/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     DEP "KernelSel4ArchX86_64"
+diff --git a/src/arch/x86/config.cmake b/src/arch/x86/config.cmake
+index 85d61f8ca..2c170bd09 100644
+--- a/src/arch/x86/config.cmake
++++ b/src/arch/x86/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ if(KernelArchX86)
+     set_property(TARGET kernel_config_target APPEND PROPERTY TOPLEVELTYPES pde_C)
+@@ -72,8 +72,8 @@ config_option(
+ config_string(
+     KernelCacheLnSz CACHE_LN_SZ "Define cache line size for the current architecture"
+     DEFAULT 64
+-    DEPENDS "KernelArchX86"
+-    UNDEF_DISABLED UNQUOTE
++    DEPENDS "KernelArchX86" UNDEF_DISABLED
++    UNQUOTE
+ )
+ 
+ config_option(
+@@ -226,11 +226,11 @@ config_choice(
+ 
+ config_string(
+     KernelMultibootGFXDepth MULTIBOOT_GRAPHICS_MODE_DEPTH
+-    "The bits per pixel of the linear graphics mode to request. Value of zero indicates \
++    "The bits per pixel of the linear graphics mode ot request. Value of zero indicates \
+     no preference."
+     DEFAULT 32
+-    DEPENDS "KernelMultibootGFXModeLinear"
+-    UNDEF_DISABLED UNQUOTE
++    DEPENDS "KernelMultibootGFXModeLinear" UNDEF_DISABLED
++    UNQUOTE
+ )
+ 
+ config_string(
+@@ -239,8 +239,8 @@ config_string(
+     number of pixels. For a text mode this is the number of characters, value of zero \
+     indicates no preference."
+     DEFAULT 0
+-    DEPENDS "KernelMultibootGFXModeText OR KernelMultibootGFXModeLinear"
+-    UNDEF_DISABLED UNQUOTE
++    DEPENDS "KernelMultibootGFXModeText OR KernelMultibootGFXModeLinear" UNDEF_DISABLED
++    UNQUOTE
+ )
+ config_string(
+     KernelMultibootGFXHeight MULTIBOOT_GRAPHICS_MODE_HEIGHT
+@@ -248,8 +248,8 @@ config_string(
+     number of pixels. For a text mode this is the number of characters, value of zero \
+     indicates no preference."
+     DEFAULT 0
+-    DEPENDS "KernelMultibootGFXModeText OR KernelMultibootGFXModeLinear"
+-    UNDEF_DISABLED UNQUOTE
++    DEPENDS "KernelMultibootGFXModeText OR KernelMultibootGFXModeLinear" UNDEF_DISABLED
++    UNQUOTE
+ )
+ 
+ config_option(
+diff --git a/src/arch/x86/kernel/vspace.c b/src/arch/x86/kernel/vspace.c
+index fc73f11cd..69759d778 100644
+--- a/src/arch/x86/kernel/vspace.c
++++ b/src/arch/x86/kernel/vspace.c
+@@ -1304,7 +1304,7 @@ exception_t decodeX86MMUInvocation(
+         for (i = 0; i < nASIDPools && x86KSASIDTable[i]; i++);
+ 
+         if (i == nASIDPools) {
+-            userError("ASIDControlMakePool: No unallocated pools found.");
++            /* no unallocated pool is found */
+             current_syscall_error.type = seL4_DeleteFirst;
+ 
+             return EXCEPTION_SYSCALL_ERROR;
+diff --git a/src/arch/x86/smp/ipi.c b/src/arch/x86/smp/ipi.c
+index 999e9ec31..198148594 100644
+--- a/src/arch/x86/smp/ipi.c
++++ b/src/arch/x86/smp/ipi.c
+@@ -11,12 +11,28 @@
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+ 
+-void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg2, bool_t irqPath)
++static IpiModeRemoteCall_t remoteCall;   /* the remote call being requested */
++
++static inline void init_ipi_args(IpiRemoteCall_t func,
++                                 word_t data1, word_t data2, word_t data3,
++                                 word_t mask)
++{
++    remoteCall = (IpiModeRemoteCall_t)func;
++    ipi_args[0] = data1;
++    ipi_args[1] = data2;
++    ipi_args[2] = data3;
++
++    /* get number of cores involved in this IPI */
++    totalCoreBarrier = popcountl(mask);
++}
++
++static void handleRemoteCall(IpiModeRemoteCall_t call, word_t arg0,
++                             word_t arg1, word_t arg2, bool_t irqPath)
+ {
+     /* we gets spurious irq_remote_call_ipi calls, e.g. when handling IPI
+      * in lock while hardware IPI is pending. Guard against spurious IPIs! */
+     if (clh_is_ipi_pending(getCurrentCPUIndex())) {
+-        switch (call) {
++        switch ((IpiRemoteCall_t)call) {
+         case IpiRemoteCall_Stall:
+             ipiStallCoreCallback(irqPath);
+             break;
+@@ -50,12 +66,12 @@ void handleRemoteCall(IpiRemoteCall_t call, word_t arg0, word_t arg1, word_t arg
+             break;
+ #endif
+         default:
+-            Mode_handleRemoteCall((IpiModeRemoteCall_t)call, arg0, arg1, arg2);
++            Mode_handleRemoteCall(call, arg0, arg1, arg2);
+             break;
+         }
+ 
+-        big_kernel_lock.node[getCurrentCPUIndex()].ipi = 0;
+-        ipi_wait();
++        big_kernel_lock.node_owners[getCurrentCPUIndex()].ipi = 0;
++        ipi_wait(totalCoreBarrier);
+     }
+ }
+ 
+@@ -76,7 +92,7 @@ static void x86_ipi_send_mask(interrupt_t ipi, word_t mask, bool_t isBlocking)
+         word_t sub_mask = mask & cpu_mapping.other_indexes_in_cluster[core];
+         target_clusters[nr_target_clusters] |= cpu_mapping.index_to_logical_id[core];
+         if (isBlocking) {
+-            big_kernel_lock.node[core].ipi = 1;
++            big_kernel_lock.node_owners[core].ipi = 1;
+         }
+ 
+         /* check if there is any other core in this cluster */
+@@ -84,7 +100,7 @@ static void x86_ipi_send_mask(interrupt_t ipi, word_t mask, bool_t isBlocking)
+             int index = wordBits - 1 - clzl(sub_mask);
+             target_clusters[nr_target_clusters] |= cpu_mapping.index_to_logical_id[index];
+             if (isBlocking) {
+-                big_kernel_lock.node[index].ipi = 1;
++                big_kernel_lock.node_owners[index].ipi = 1;
+             }
+             sub_mask &= ~BIT(index);
+         }
+diff --git a/src/config.cmake b/src/config.cmake
+index 2be645c3d..492c04ff8 100644
+--- a/src/config.cmake
++++ b/src/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ add_sources(
+     CFILES
+diff --git a/src/drivers/config.cmake b/src/drivers/config.cmake
+index 34c14416a..04f536d9e 100644
+--- a/src/drivers/config.cmake
++++ b/src/drivers/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ macro(register_driver compatibility_strings match_strings)
+     foreach(match_string IN ITEMS ${match_strings})
+diff --git a/src/drivers/serial/config.cmake b/src/drivers/serial/config.cmake
+index 27aef66bf..0c99a8c1a 100644
+--- a/src/drivers/serial/config.cmake
++++ b/src/drivers/serial/config.cmake
+@@ -5,7 +5,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ register_driver(
+     compatibility_strings "brcm,bcm2835-aux-uart"
+diff --git a/src/drivers/smmu/config.cmake b/src/drivers/smmu/config.cmake
+index a938fbd3a..0777cb286 100644
+--- a/src/drivers/smmu/config.cmake
++++ b/src/drivers/smmu/config.cmake
+@@ -4,6 +4,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ register_driver(compatibility_strings "arm,mmu-500" PREFIX src/drivers/smmu CFILES "smmuv2.c")
+diff --git a/src/drivers/timer/config.cmake b/src/drivers/timer/config.cmake
+index a6f2a2793..f9d471afb 100644
+--- a/src/drivers/timer/config.cmake
++++ b/src/drivers/timer/config.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ register_driver(
+     compatibility_strings "ti,am335x-timer"
+diff --git a/src/fastpath/fastpath.c b/src/fastpath/fastpath.c
+index 39189f564..ac4b4b6fd 100644
+--- a/src/fastpath/fastpath.c
++++ b/src/fastpath/fastpath.c
+@@ -428,6 +428,11 @@ void NORETURN fastpath_reply_recv(word_t cptr, word_t msgInfo)
+     }
+ #endif /* ENABLE_SMP_SUPPORT */
+ 
++#ifdef CONFIG_KERNEL_MCS
++    /* not possible to set reply object and not be blocked */
++    assert(thread_state_get_replyObject(NODE_STATE(ksCurThread)->tcbState) == 0);
++#endif
++
+     /*
+      * --- POINT OF NO RETURN ---
+      *
+diff --git a/src/kernel/boot.c b/src/kernel/boot.c
+index 097a639ae..5357dbef7 100644
+--- a/src/kernel/boot.c
++++ b/src/kernel/boot.c
+@@ -536,6 +536,12 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
+     tcb->tcbPriority = seL4_MaxPrio;
+     tcb->tcbMCP = seL4_MaxPrio;
+     tcb->tcbDomain = ksDomSchedule[ksDomScheduleIdx].domain;
++
++    /*
++    * GuardianOS: the first thread is always the security monitor, so the world ID is 1 (trusted)
++    */
++    tcb->tcb_world_id = 1;
++
+ #ifndef CONFIG_KERNEL_MCS
+     setupReplyMaster(tcb);
+ #endif
+@@ -572,7 +578,7 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
+ BOOT_CODE void clock_sync_test(void)
+ {
+     ticks_t t, t0;
+-    ticks_t margin = usToTicks(CLOCK_SYNC_DELTA) + getTimerPrecision();
++    ticks_t margin = usToTicks(1) + getTimerPrecision();
+ 
+     assert(getCurrentCPUIndex() != 0);
+     t = NODE_STATE_ON_CORE(ksCurTime, 0);
+diff --git a/src/kernel/thread.c b/src/kernel/thread.c
+index 231a226b2..dc5c3d861 100644
+--- a/src/kernel/thread.c
++++ b/src/kernel/thread.c
+@@ -139,7 +139,7 @@ void doReplyTransfer(tcb_t *sender, tcb_t *receiver, cte_t *slot, bool_t grant)
+ 
+     tcb_t *receiver = reply->replyTCB;
+     reply_remove(reply, receiver);
+-    assert(thread_state_get_tsType(receiver->tcbState) == ThreadState_Inactive);
++    assert(thread_state_get_replyObject(receiver->tcbState) == REPLY_REF(0));
+     assert(reply->replyTCB == NULL);
+ 
+     if (sc_sporadic(receiver->tcbSchedContext)
+@@ -442,6 +442,8 @@ void switchToThread(tcb_t *thread)
+ {
+ #ifdef CONFIG_KERNEL_MCS
+     assert(thread->tcbSchedContext != NULL);
++    /* verification on the thread world id (guardianos)*/
++    assert(thread->tcb_world_id != NULL);
+     assert(!thread_state_get_tcbInReleaseQueue(thread->tcbState));
+     assert(refill_sufficient(thread->tcbSchedContext, 0));
+     assert(refill_ready(thread->tcbSchedContext));
+diff --git a/src/object/endpoint.c b/src/object/endpoint.c
+index 822d71203..3868dcbf9 100644
+--- a/src/object/endpoint.c
++++ b/src/object/endpoint.c
+@@ -309,7 +309,7 @@ void cancelIPC(tcb_t *tptr)
+ 
+ #ifdef CONFIG_KERNEL_MCS
+     /* cancel ipc cancels all faults */
+-    tptr->tcbFault = seL4_Fault_NullFault_new();
++    seL4_Fault_NullFault_ptr_new(&tptr->tcbFault);
+ #endif
+ 
+     switch (thread_state_ptr_get_tsType(state)) {
+@@ -334,11 +334,9 @@ void cancelIPC(tcb_t *tptr)
+         }
+ 
+ #ifdef CONFIG_KERNEL_MCS
+-        if (thread_state_ptr_get_tsType(state) == ThreadState_BlockedOnReceive) {
+-            reply_t *reply = REPLY_PTR(thread_state_ptr_get_replyObject(state));
+-            if (reply != NULL) {
+-                reply_unlink(reply, tptr);
+-            }
++        reply_t *reply = REPLY_PTR(thread_state_get_replyObject(tptr->tcbState));
++        if (reply != NULL) {
++            reply_unlink(reply, tptr);
+         }
+ #endif
+         setThreadState(tptr, ThreadState_Inactive);
+@@ -414,11 +412,9 @@ void cancelAllIPC(endpoint_t *epptr)
+         /* Set all blocked threads to restart */
+         for (; thread; thread = thread->tcbEPNext) {
+ #ifdef CONFIG_KERNEL_MCS
+-            if (thread_state_get_tsType(thread->tcbState) == ThreadState_BlockedOnReceive) {
+-                reply_t *reply = REPLY_PTR(thread_state_get_replyObject(thread->tcbState));
+-                if (reply != NULL) {
+-                    reply_unlink(reply, thread);
+-                }
++            reply_t *reply = REPLY_PTR(thread_state_get_replyObject(thread->tcbState));
++            if (reply != NULL) {
++                reply_unlink(reply, thread);
+             }
+             restart_thread_if_no_fault(thread);
+ #else
+@@ -457,7 +453,7 @@ void cancelBadgedSends(endpoint_t *epptr, word_t badge)
+             next = thread->tcbEPNext;
+ #ifdef CONFIG_KERNEL_MCS
+             /* senders do not have reply objects in their state, and we are only cancelling sends */
+-            assert(thread_state_get_tsType(thread->tcbState) == ThreadState_BlockedOnSend);
++            assert(REPLY_PTR(thread_state_get_replyObject(thread->tcbState)) == NULL);
+             if (b == badge) {
+                 restart_thread_if_no_fault(thread);
+                 queue = tcbEPDequeue(thread, queue);
+diff --git a/src/object/objecttype.c b/src/object/objecttype.c
+index e23c5fe90..bde8f0f2b 100644
+--- a/src/object/objecttype.c
++++ b/src/object/objecttype.c
+@@ -526,6 +526,10 @@ cap_t createObject(object_t t, void *regionBase, word_t userSize, bool_t deviceM
+ 
+         /* Setup non-zero parts of the TCB. */
+ 
++        /* set the tcb world_id to 0 (guardianos)*/
++        tcb->tcb_world_id = 0;
++        
++        printf("[DEBUG] tcb->tcb_world_id = %lu\n", tcb->tcb_world_id);
+         Arch_initContext(&tcb->tcbArch.tcbContext);
+ #ifndef CONFIG_KERNEL_MCS
+         tcb->tcbTimeSlice = CONFIG_TIME_SLICE;
+diff --git a/src/object/reply.c b/src/object/reply.c
+index 82fd4e3ee..be642cb94 100644
+--- a/src/object/reply.c
++++ b/src/object/reply.c
+@@ -17,16 +17,13 @@ void reply_push(tcb_t *tcb_caller, tcb_t *tcb_callee, reply_t *reply, bool_t can
+     assert(call_stack_get_callStackPtr(reply->replyPrev) == 0);
+     assert(call_stack_get_callStackPtr(reply->replyNext) == 0);
+ 
+-    /* caller state must be blocked on send or active, so cannot be in a existing call stack */
+-    assert(thread_state_get_tsType(tcb_caller->tcbState) == ThreadState_BlockedOnSend ||
+-           thread_state_get_tsType(tcb_caller->tcbState) == ThreadState_Running ||
+-           thread_state_get_tsType(tcb_caller->tcbState) == ThreadState_Restart);
+-
+-    /* callee state must be simple at this point (inactive, restart, or running),
+-       so it also cannot have a reply reference associated with it. */
+-    assert(thread_state_get_tsType(tcb_callee->tcbState) == ThreadState_Inactive ||
+-           thread_state_get_tsType(tcb_callee->tcbState) == ThreadState_Running ||
+-           thread_state_get_tsType(tcb_callee->tcbState) == ThreadState_Restart);
++    /* tcb caller should not be in a existing call stack */
++    assert(thread_state_get_replyObject(tcb_caller->tcbState) == 0);
++
++    /* unlink callee and reply - they may not have been linked already,
++     * if this rendesvous is occuring when seL4_Recv is called,
++     * however, no harm in overring 0 with 0 */
++    thread_state_ptr_set_replyObject(&tcb_callee->tcbState, 0);
+ 
+     /* link caller and reply */
+     reply->replyTCB = tcb_caller;
+diff --git a/src/object/tcb.c b/src/object/tcb.c
+index 96fecaeca..bc77620da 100644
+--- a/src/object/tcb.c
++++ b/src/object/tcb.c
+@@ -1053,6 +1053,7 @@ exception_t decodeTCBConfigure(cap_t cap, word_t length, cte_t *slot, word_t *bu
+     cap_t bufferCap, cRootCap, vRootCap;
+     deriveCap_ret_t dc_ret;
+     word_t cRootData, vRootData, bufferAddr;
++    uint64_t world_id;
+ #ifdef CONFIG_KERNEL_MCS
+ #define TCBCONFIGURE_ARGS 3
+ #else
+@@ -1077,6 +1078,9 @@ exception_t decodeTCBConfigure(cap_t cap, word_t length, cte_t *slot, word_t *bu
+     bufferAddr    = getSyscallArg(3, buffer);
+ #endif
+ 
++    printf("[DEBUG] TCBConfigure.\n");
++    world_id = getSyscallArg(4, buffer);
++    printf("[DEBUG] world_id: %llu\n", world_id);
+     cRootSlot  = current_extra_caps.excaprefs[0];
+     cRootCap   = current_extra_caps.excaprefs[0]->cap;
+     vRootSlot  = current_extra_caps.excaprefs[1];
+@@ -1141,9 +1145,13 @@ exception_t decodeTCBConfigure(cap_t cap, word_t length, cte_t *slot, word_t *bu
+     }
+ 
+     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
++    tcb_t *tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
++    /* Directly set the tcb world id (guardianos)*/
++    tcb->tcb_world_id = world_id;
++    printf("[DEBUG] OK! tcb->tcb_world_id: %lu\n", tcb->tcb_world_id);
+ #ifdef CONFIG_KERNEL_MCS
+     return invokeTCB_ThreadControlCaps(
+-               TCB_PTR(cap_thread_cap_get_capTCBPtr(cap)), slot,
++               tcb, slot,
+                cap_null_cap_new(), NULL,
+                cap_null_cap_new(), NULL,
+                cRootCap, cRootSlot,
+@@ -1152,8 +1160,10 @@ exception_t decodeTCBConfigure(cap_t cap, word_t length, cte_t *slot, word_t *bu
+                bufferSlot, thread_control_caps_update_space |
+                thread_control_caps_update_ipc_buffer);
+ #else
++
++
+     return invokeTCB_ThreadControl(
+-               TCB_PTR(cap_thread_cap_get_capTCBPtr(cap)), slot,
++               tcb, slot,
+                faultEP, NULL_PRIO, NULL_PRIO,
+                cRootCap, cRootSlot,
+                vRootCap, vRootSlot,
+diff --git a/src/plat/allwinnerA20/config.cmake b/src/plat/allwinnerA20/config.cmake
+index f8377f10e..9032a248d 100644
+--- a/src/plat/allwinnerA20/config.cmake
++++ b/src/plat/allwinnerA20/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(allwinnerA20 KernelPlatformAllwinnerA20 PLAT_ALLWINNERA20 KernelSel4ArchAarch32)
+ 
+ if(KernelPlatformAllwinnerA20)
+diff --git a/src/plat/am335x/config.cmake b/src/plat/am335x/config.cmake
+index afa881f72..89f362f19 100644
+--- a/src/plat/am335x/config.cmake
++++ b/src/plat/am335x/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(am335x KernelPlatformAM335X PLAT_AM335X KernelSel4ArchAarch32)
+ set(c_configs PLAT_AM335X_BONEBLACK PLAT_AM335X_BONEBLUE PLAT_AM335X_BONE)
+ set(
+diff --git a/src/plat/apq8064/config.cmake b/src/plat/apq8064/config.cmake
+index 705f95915..67a01f5db 100644
+--- a/src/plat/apq8064/config.cmake
++++ b/src/plat/apq8064/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(apq8064 KernelPlatformAPQ8064 PLAT_APQ8064 KernelSel4ArchAarch32)
+ 
+ if(KernelPlatformAPQ8064)
+diff --git a/src/plat/ariane/config.cmake b/src/plat/ariane/config.cmake
+index 92b78278c..cf956d7d2 100644
+--- a/src/plat/ariane/config.cmake
++++ b/src/plat/ariane/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(ariane KernelPlatformAriane PLAT_ARIANE KernelArchRiscV)
+ 
+ if(KernelPlatformAriane)
+diff --git a/src/plat/ariane/overlay-ariane.dts b/src/plat/ariane/overlay-ariane.dts
+index a1b61de16..ae38aa6fa 100644
+--- a/src/plat/ariane/overlay-ariane.dts
++++ b/src/plat/ariane/overlay-ariane.dts
+@@ -1,6 +1,5 @@
+ /*
+  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+- * Copyright 2021, HENSOLDT Cyber
+  *
+  * SPDX-License-Identifier: GPL-2.0-only
+  */
+@@ -23,20 +22,4 @@
+             reg = <0x00000000 0x2000000 0x00000000 0x0000c0000>;
+         };
+     };
+-
+-    /* Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@80000000 {
+-            reg = <0x80000000 0x200000>;
+-            no-map;
+-        };
+-    };
+ };
+diff --git a/src/plat/bcm2711/config.cmake b/src/plat/bcm2711/config.cmake
+index 66d402fe6..d66df9de9 100644
+--- a/src/plat/bcm2711/config.cmake
++++ b/src/plat/bcm2711/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(bcm2711 KernelPlatformRpi4 PLAT_BCM2711 KernelArchARM)
+ 
+ if(KernelPlatformRpi4)
+diff --git a/src/plat/bcm2837/config.cmake b/src/plat/bcm2837/config.cmake
+index 98d768523..56d0098ed 100644
+--- a/src/plat/bcm2837/config.cmake
++++ b/src/plat/bcm2837/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(bcm2837 KernelPlatformRpi3 PLAT_BCM2837 KernelArchARM)
+ 
+ if(KernelPlatformRpi3)
+diff --git a/src/plat/cheshire/config.cmake b/src/plat/cheshire/config.cmake
+deleted file mode 100644
+index 346f34f15..000000000
+--- a/src/plat/cheshire/config.cmake
++++ /dev/null
+@@ -1,27 +0,0 @@
+-#
+-# Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+-# Copyright 2021, HENSOLDT Cyber
+-# Copyright 2024, UNSW
+-#
+-# SPDX-License-Identifier: GPL-2.0-only
+-#
+-
+-declare_platform(cheshire KernelPlatformCheshire PLAT_CHESHIRE KernelArchRiscV)
+-
+-if(KernelPlatformCheshire)
+-    declare_seL4_arch(riscv64)
+-    config_set(KernelRiscVPlatform RISCV_PLAT "cheshire")
+-    config_set(KernelPlatformFirstHartID FIRST_HART_ID 0)
+-    config_set(KernelOpenSBIPlatform OPENSBI_PLATFORM "fpga/cheshire")
+-    set(OPENSBI_PLAT_XLEN "64")
+-    set(OPENSBI_PLAT_ISA "rv64imafdc_zicsr_zifencei")
+-    list(APPEND KernelDTSList "tools/dts/cheshire.dts")
+-    list(APPEND KernelDTSList "src/plat/cheshire/overlay-cheshire.dts")
+-    declare_default_headers(
+-        TIMER_FREQUENCY 1000000
+-        MAX_IRQ 51
+-        INTERRUPT_CONTROLLER drivers/irq/riscv_plic0.h
+-    )
+-else()
+-    unset(KernelPlatformFirstHartID CACHE)
+-endif()
+diff --git a/src/plat/cheshire/overlay-cheshire.dts b/src/plat/cheshire/overlay-cheshire.dts
+deleted file mode 100644
+index 139e3d117..000000000
+--- a/src/plat/cheshire/overlay-cheshire.dts
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * Copyright 2024,  UNSW
+- * SPDX-License-Identifier: GPL-2.0-only
+- */
+-
+-/ {
+-	chosen {
+-		seL4,kernel-devices =
+-            &{/soc/clint@2000000},
+-		    &{/soc/interrupt-controller@4000000};
+-	};
+-
+-    /*
+-     * The size and address of the CLINT is from the memory map listed in the
+-     * CVA6 documentation. It can be found here:
+-     * https://docs.openhwgroup.org/projects/cva6-user-manual/05_cva6_apu/cva6_apu.html#memory-map
+-     */
+-    soc {
+-        clint@2000000 {
+-            compatible = "riscv,cpu-intc";
+-            reg = <0x00000000 0x2000000 0x00000000 0x0000c0000>;
+-        };
+-    };
+-    /* Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@80000000 {
+-            reg = <0x80000000 0x200000>;
+-            no-map;
+-        };
+-    };
+-};
+diff --git a/src/plat/exynos4/config.cmake b/src/plat/exynos4/config.cmake
+index c6c1be4b0..b260f1779 100644
+--- a/src/plat/exynos4/config.cmake
++++ b/src/plat/exynos4/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(exynos4 KernelPlatformExynos4 PLAT_EXYNOS4 KernelSel4ArchAarch32)
+ 
+ if(KernelPlatformExynos4)
+diff --git a/src/plat/exynos5/config.cmake b/src/plat/exynos5/config.cmake
+index 087f5c2e7..dbb6ec02e 100644
+--- a/src/plat/exynos5/config.cmake
++++ b/src/plat/exynos5/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ # We introduce a variable to hold this long expression to prevent the
+ # code styler from line-wrapping the declare_platform() statement.  We
+ # want to keep that on one line so the `griddle` tool (or humans) can
+diff --git a/src/plat/fvp/config.cmake b/src/plat/fvp/config.cmake
+index 32b0ef983..70ba4e68e 100644
+--- a/src/plat/fvp/config.cmake
++++ b/src/plat/fvp/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(fvp KernelPlatformFVP PLAT_FVP KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformFVP)
+diff --git a/src/plat/hifive/config.cmake b/src/plat/hifive/config.cmake
+index 7bf506080..0b891b3d7 100644
+--- a/src/plat/hifive/config.cmake
++++ b/src/plat/hifive/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(hifive KernelPlatformHifive PLAT_HIFIVE KernelSel4ArchRiscV64)
+ 
+ if(KernelPlatformHifive)
+diff --git a/src/plat/hifive/overlay-hifive.dts b/src/plat/hifive/overlay-hifive.dts
+index 1ec686674..530ebaa3d 100644
+--- a/src/plat/hifive/overlay-hifive.dts
++++ b/src/plat/hifive/overlay-hifive.dts
+@@ -1,6 +1,5 @@
+ /*
+  * Copyright 2020, Data61, CSIRO (ABN 41 687 119 230)
+- * Copyright 2021, HENSOLDT Cyber
+  *
+  * SPDX-License-Identifier: GPL-2.0-only
+  */
+@@ -22,22 +21,4 @@
+             reg = <0x00000000 0x2000000 0x00000000 0x000010000>;
+         };
+     };
+-
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-
+-        /* Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000).
+-         * This is exactly one "megapage" in the MMU table. It leaves plenty of
+-         * space for further SBI experimenting, given the known usage (as of
+-         * June 2021) is:
+-         * - BBL: 76 KiB (= 0x13000)
+-         * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-         */
+-        sbi@80000000 {
+-            reg = <0x80000000 0x200000>;
+-            no-map;
+-        };
+-    };
+ };
+diff --git a/src/plat/hikey/config.cmake b/src/plat/hikey/config.cmake
+index 0414ae6aa..3eff84c5d 100644
+--- a/src/plat/hikey/config.cmake
++++ b/src/plat/hikey/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(hikey KernelPlatformHikey PLAT_HIKEY KernelArchARM)
+ 
+ if(KernelPlatformHikey)
+diff --git a/src/plat/imx6/config.cmake b/src/plat/imx6/config.cmake
+index 6240a24ea..e5b01420c 100644
+--- a/src/plat/imx6/config.cmake
++++ b/src/plat/imx6/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(imx6 KernelPlatImx6 PLAT_IMX6 KernelSel4ArchAarch32)
+ 
+ # disable platform specific settings by default in cache, will be enabled below
+diff --git a/src/plat/imx7/config.cmake b/src/plat/imx7/config.cmake
+index b4ea45174..4ba6e7c87 100644
+--- a/src/plat/imx7/config.cmake
++++ b/src/plat/imx7/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(imx7 KernelPlatImx7 PLAT_IMX7_SABRE KernelSel4ArchAarch32)
+ 
+ if(KernelPlatImx7)
+diff --git a/src/plat/imx8m-evk/config.cmake b/src/plat/imx8m-evk/config.cmake
+index bb189b415..73acd3979 100644
+--- a/src/plat/imx8m-evk/config.cmake
++++ b/src/plat/imx8m-evk/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(imx8mq-evk KernelPlatformImx8mq-evk PLAT_IMX8MQ_EVK KernelArchARM)
+ declare_platform(imx8mm-evk KernelPlatformImx8mm-evk PLAT_IMX8MM_EVK KernelArchARM)
+ declare_platform(imx8mp-evk KernelPlatformImx8mp-evk PLAT_IMX8MP_EVK KernelArchARM)
+diff --git a/src/plat/imx93/config.cmake b/src/plat/imx93/config.cmake
+index f41b1d5a9..5d6ed8faf 100644
+--- a/src/plat/imx93/config.cmake
++++ b/src/plat/imx93/config.cmake
+@@ -3,6 +3,9 @@
+ #
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
++
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(imx93 KernelPlatformIMX93 PLAT_IMX93 KernelArchARM)
+ 
+ if(KernelPlatformIMX93)
+diff --git a/src/plat/maaxboard/config.cmake b/src/plat/maaxboard/config.cmake
+index a0ff50e90..32b1f17e0 100644
+--- a/src/plat/maaxboard/config.cmake
++++ b/src/plat/maaxboard/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(maaxboard KernelPlatformMaaxboard PLAT_MAAXBOARD KernelArchARM)
+ 
+ if(KernelPlatformMaaxboard)
+diff --git a/src/plat/odroidc2/config.cmake b/src/plat/odroidc2/config.cmake
+index de4098ad8..2ffb76643 100644
+--- a/src/plat/odroidc2/config.cmake
++++ b/src/plat/odroidc2/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(odroidc2 KernelPlatformOdroidc2 PLAT_ODROIDC2 KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformOdroidc2)
+diff --git a/src/plat/odroidc4/config.cmake b/src/plat/odroidc4/config.cmake
+index 3ba86f1bd..06b5efdb1 100644
+--- a/src/plat/odroidc4/config.cmake
++++ b/src/plat/odroidc4/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(odroidc4 KernelPlatformOdroidc4 PLAT_ODROIDC4 KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformOdroidc4)
+@@ -11,7 +13,7 @@ if(KernelPlatformOdroidc4)
+     set(KernelArmCortexA55 ON)
+     set(KernelArchArmV8a ON)
+     config_set(KernelARMPlatform ARM_PLAT odroidc4)
+-    set(KernelArmMachFeatureModifiers "+fp+simd+crc" CACHE INTERNAL "")
++    set(KernelArmMachFeatureModifiers "+crc" CACHE INTERNAL "")
+     list(APPEND KernelDTSList "tools/dts/odroidc4.dts" "src/plat/odroidc4/overlay-odroidc4.dts")
+     # MAX_IRQ is based on the section 7.10.2 of the S905X3 SoC manual
+     declare_default_headers(
+diff --git a/src/plat/omap3/config.cmake b/src/plat/omap3/config.cmake
+index 7144dce2f..0bf16034c 100644
+--- a/src/plat/omap3/config.cmake
++++ b/src/plat/omap3/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(omap3 KernelPlatformOMAP3 PLAT_OMAP3 KernelSel4ArchAarch32)
+ 
+ if(KernelPlatformOMAP3)
+diff --git a/src/plat/pc99/config.cmake b/src/plat/pc99/config.cmake
+index 6a382b203..aebdbe94e 100644
+--- a/src/plat/pc99/config.cmake
++++ b/src/plat/pc99/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(pc99 KernelPlatPC99 PLAT_PC99 KernelArchX86)
+ 
+ if(KernelPlatPC99)
+diff --git a/src/plat/polarfire/config.cmake b/src/plat/polarfire/config.cmake
+index 2f4618331..dd6f289e9 100644
+--- a/src/plat/polarfire/config.cmake
++++ b/src/plat/polarfire/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(polarfire KernelPlatformPolarfire PLAT_POLARFIRE KernelSel4ArchRiscV64)
+ 
+ if(KernelPlatformPolarfire)
+diff --git a/src/plat/polarfire/overlay-polarfire.dts b/src/plat/polarfire/overlay-polarfire.dts
+index 1a89e937e..7b90f0429 100644
+--- a/src/plat/polarfire/overlay-polarfire.dts
++++ b/src/plat/polarfire/overlay-polarfire.dts
+@@ -1,6 +1,5 @@
+-/*
++ /*
+  * Copyright 2020, DornerWorks
+- * Copyright 2021, HENSOLDT Cyber
+  *
+  * SPDX-License-Identifier: GPL-2.0-only
+  */
+@@ -22,20 +21,4 @@
+             reg = <0x00000000 0x2000000 0x00000000 0x000010000>;
+         };
+     };
+-
+-    /* Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@80000000 {
+-            reg = <0x80000000 0x200000>;
+-            no-map;
+-        };
+-    };
+ };
+diff --git a/src/plat/qemu-arm-virt/config.cmake b/src/plat/qemu-arm-virt/config.cmake
+index af98c16e9..775ea9dd9 100644
+--- a/src/plat/qemu-arm-virt/config.cmake
++++ b/src/plat/qemu-arm-virt/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(qemu-arm-virt KernelPlatformQEMUArmVirt PLAT_QEMU_ARM_VIRT KernelArchARM)
+ 
+ set(qemu_user_top 0xa0000000)
+diff --git a/src/plat/qemu-riscv-virt/config.cmake b/src/plat/qemu-riscv-virt/config.cmake
+index de62061d6..a5b960be5 100644
+--- a/src/plat/qemu-riscv-virt/config.cmake
++++ b/src/plat/qemu-riscv-virt/config.cmake
+@@ -5,6 +5,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(qemu-riscv-virt KernelPlatformQEMURiscVVirt PLAT_QEMU_RISCV_VIRT KernelArchRiscV)
+ 
+ if(KernelPlatformQEMURiscVVirt)
+diff --git a/src/plat/qemu-riscv-virt/overlay-qemu-riscv-virt.dts b/src/plat/qemu-riscv-virt/overlay-qemu-riscv-virt.dts
+index cca51c8b9..34a43eaf2 100644
+--- a/src/plat/qemu-riscv-virt/overlay-qemu-riscv-virt.dts
++++ b/src/plat/qemu-riscv-virt/overlay-qemu-riscv-virt.dts
+@@ -26,26 +26,4 @@
+             reg = <0x00000000 0x2000000 0x00000000 0x000010000>;
+         };
+     };
+-
+-    /*
+-     * See https://github.com/qemu/qemu/blob/master/hw/riscv/virt.c for the
+-     * QEMU/virt memory map. There are these areas:
+-     * - Boot-ROM at 0x1000, len 0xf000
+-     * - DRAM at 0x80000000 - end (2 GiB)
+-     *
+-     * Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x02>;
+-        #size-cells = <0x02>;
+-        ranges;
+-        sbi@80000000 {
+-            reg = <0x00000000 0x80000000 0x00000000 0x200000>;
+-            no-map;
+-        };
+-    };
+ };
+diff --git a/src/plat/quartz64/config.cmake b/src/plat/quartz64/config.cmake
+index 51ef0a6ff..4bf4e2d2d 100644
+--- a/src/plat/quartz64/config.cmake
++++ b/src/plat/quartz64/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(quartz64 KernelPlatformQuartz64 PLAT_QUARTZ64 KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformQuartz64)
+diff --git a/src/plat/rocketchip/config.cmake b/src/plat/rocketchip/config.cmake
+index dbb2bfcd0..44f1c6129 100644
+--- a/src/plat/rocketchip/config.cmake
++++ b/src/plat/rocketchip/config.cmake
+@@ -6,6 +6,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(rocketchip KernelPlatformRocketchip PLAT_ROCKETCHIP KernelArchRiscV)
+ 
+ set(c_configs PLAT_ROCKETCHIP_BASE PLAT_ROCKETCHIP_ZCU102)
+diff --git a/src/plat/rocketchip/overlay-rocketchip-base.dts b/src/plat/rocketchip/overlay-rocketchip-base.dts
+index dd8d908c8..9170965fc 100644
+--- a/src/plat/rocketchip/overlay-rocketchip-base.dts
++++ b/src/plat/rocketchip/overlay-rocketchip-base.dts
+@@ -18,21 +18,4 @@
+             reg = <0x2000000 0x10000>;
+         };
+     };
+-
+-    /* Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@80000000 {
+-            reg = <0x80000000 0x200000>;
+-            no-map;
+-        };
+-    };
+-
+ };
+diff --git a/src/plat/rocketchip/overlay-rocketchip-zcu102.dts b/src/plat/rocketchip/overlay-rocketchip-zcu102.dts
+index cbe95dd9f..568c92aef 100644
+--- a/src/plat/rocketchip/overlay-rocketchip-zcu102.dts
++++ b/src/plat/rocketchip/overlay-rocketchip-zcu102.dts
+@@ -19,22 +19,6 @@
+         };
+     };
+ 
+-    /* Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@40000000 {
+-            reg = <0x40000000 0x200000>;
+-            no-map;
+-        };
+-    };
+-
+ 	/delete-node/ memory@80000000;
+ 
+ 	L6: memory@40000000 {
+diff --git a/src/plat/rockpro64/config.cmake b/src/plat/rockpro64/config.cmake
+index ac4ec6067..5959c6d69 100644
+--- a/src/plat/rockpro64/config.cmake
++++ b/src/plat/rockpro64/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(rockpro64 KernelPlatformRockpro64 PLAT_ROCKPRO64 KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformRockpro64)
+diff --git a/src/plat/spike/config.cmake b/src/plat/spike/config.cmake
+index 27271f604..e948120da 100644
+--- a/src/plat/spike/config.cmake
++++ b/src/plat/spike/config.cmake
+@@ -6,6 +6,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(spike KernelPlatformSpike PLAT_SPIKE KernelArchRiscV)
+ 
+ if(KernelPlatformSpike)
+diff --git a/src/plat/spike/overlay-spike.dts b/src/plat/spike/overlay-spike.dts
+index c439be80f..3d2c757ac 100644
+--- a/src/plat/spike/overlay-spike.dts
++++ b/src/plat/spike/overlay-spike.dts
+@@ -1,6 +1,5 @@
+ /*
+  * Copyright 2023, UNSW
+- * Copyright 2021, HENSOLDT Cyber
+  *
+  * SPDX-License-Identifier: GPL-2.0-only
+  */
+@@ -24,26 +23,4 @@
+             reg = <0x00000000 0x2000000 0x00000000 0x0000c0000>;
+         };
+     };
+-
+-    /*
+-     * See https://github.com/qemu/qemu/blob/master/hw/riscv/spike.c for the
+-     * QEMU/Spike memory map. There are these areas:
+-     * - Boot-ROM at 0x1000, len 0xf000
+-     * - DRAM at 0x80000000 - end (2 GiB)
+-     *
+-     * Reserve 2 MiB for SBI at the start of RAM (0x80000000 - 0x80200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@80000000 {
+-            reg = <0x80000000 0x200000>;
+-            no-map;
+-        };
+-    };
+ };
+diff --git a/src/plat/star64/config.cmake b/src/plat/star64/config.cmake
+index c6a3f5336..46a0a27b0 100644
+--- a/src/plat/star64/config.cmake
++++ b/src/plat/star64/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(star64 KernelPlatformStar64 PLAT_STAR64 KernelArchRiscV)
+ 
+ if(KernelPlatformStar64)
+diff --git a/src/plat/star64/overlay-star64.dts b/src/plat/star64/overlay-star64.dts
+index bd68fce4f..647ccdc83 100644
+--- a/src/plat/star64/overlay-star64.dts
++++ b/src/plat/star64/overlay-star64.dts
+@@ -21,19 +21,4 @@
+             reg = <0x00000000 0x2000000 0x00000000 0x000010000>;
+         };
+     };
+-    /* Reserve 2 MiB for SBI at the start of RAM (0x40000000 - 0x40200000). This
+-     * is exactly one "megapage" in the MMU table. It leaves plenty of space for
+-     * further SBI experimenting, given the known usage (as of June 2021) is:
+-     * - BBL: 76 KiB (= 0x13000)
+-     * - OpenSBI: 128 KiB (= 0x20000) with PMP protection
+-     */
+-    reserved-memory {
+-        #address-cells = <0x01>;
+-        #size-cells = <0x01>;
+-        ranges;
+-        sbi@40000000 {
+-            reg = <0x40000000 0x200000>;
+-            no-map;
+-        };
+-    };
+ };
+diff --git a/src/plat/tk1/config.cmake b/src/plat/tk1/config.cmake
+index be81ebd3b..024b19159 100644
+--- a/src/plat/tk1/config.cmake
++++ b/src/plat/tk1/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(tk1 KernelPlatformTK1 PLAT_TK1 "KernelSel4ArchAarch32 OR KernelSel4ArchArmHyp")
+ 
+ if(KernelPlatformTK1)
+diff --git a/src/plat/tqma8xqp1gb/config.cmake b/src/plat/tqma8xqp1gb/config.cmake
+index 5b67e5049..75e971c99 100644
+--- a/src/plat/tqma8xqp1gb/config.cmake
++++ b/src/plat/tqma8xqp1gb/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(tqma8xqp1gb KernelPlatformTqma8xqp1gb PLAT_TQMA8XQP1GB KernelArchARM)
+ 
+ if(KernelPlatformTqma8xqp1gb)
+diff --git a/src/plat/tx1/config.cmake b/src/plat/tx1/config.cmake
+index d348d149b..e311b23be 100644
+--- a/src/plat/tx1/config.cmake
++++ b/src/plat/tx1/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(tx1 KernelPlatformTx1 PLAT_TX1 KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformTx1)
+diff --git a/src/plat/tx2/config.cmake b/src/plat/tx2/config.cmake
+index 44d78e738..0bd153121 100644
+--- a/src/plat/tx2/config.cmake
++++ b/src/plat/tx2/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(tx2 KernelPlatformTx2 PLAT_TX2 KernelSel4ArchAarch64)
+ 
+ if(KernelPlatformTx2)
+diff --git a/src/plat/zynq7000/config.cmake b/src/plat/zynq7000/config.cmake
+index 5f640d5b9..1491dfb6c 100644
+--- a/src/plat/zynq7000/config.cmake
++++ b/src/plat/zynq7000/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(zynq7000 KernelPlatformZynq7000 PLAT_ZYNQ7000 KernelSel4ArchAarch32)
+ 
+ if(KernelPlatformZynq7000)
+diff --git a/src/plat/zynqmp/config.cmake b/src/plat/zynqmp/config.cmake
+index 76853a4ce..67d839e55 100644
+--- a/src/plat/zynqmp/config.cmake
++++ b/src/plat/zynqmp/config.cmake
+@@ -4,6 +4,8 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
++cmake_minimum_required(VERSION 3.7.2)
++
+ declare_platform(zynqmp KernelPlatformZynqmp PLAT_ZYNQMP KernelArchARM)
+ 
+ set(c_configs PLAT_ZYNQMP_ZCU102 PLAT_ZYNQMP_ULTRA96 PLAT_ZYNQMP_ULTRA96V2)
+diff --git a/src/smp/ipi.c b/src/smp/ipi.c
+index 6f12f8ed0..ccc52a2b1 100644
+--- a/src/smp/ipi.c
++++ b/src/smp/ipi.c
+@@ -21,9 +21,6 @@
+  * or this call will idle forever */
+ void ipiStallCoreCallback(bool_t irqPath)
+ {
+-    word_t cpu = getCurrentCPUIndex();
+-    clh_node_t *node = &big_kernel_lock.node[cpu];
+-
+     if (clh_is_self_in_queue() && !irqPath) {
+         /* The current thread is running as we would replace this thread with an idle thread
+          *
+@@ -43,20 +40,20 @@ void ipiStallCoreCallback(bool_t irqPath)
+ #endif
+         NODE_STATE(ksSchedulerAction) = SchedulerAction_ResumeCurrentThread;
+ 
+-        /* Let the cpu requesting this IPI continue while we wait on the lock */
+-        node->ipi = 0;
++        /* Let the cpu requesting this IPI to continue while we waiting on lock */
++        big_kernel_lock.node_owners[getCurrentCPUIndex()].ipi = 0;
+ #ifdef CONFIG_ARCH_RISCV
+         ipi_clear_irq(irq_remote_call_ipi);
+ #endif
+-        ipi_wait();
++        ipi_wait(totalCoreBarrier);
+ 
+         /* Continue waiting on lock */
+-        while (node->watch->state != CLHState_Granted) {
+-            __atomic_thread_fence(__ATOMIC_ACQUIRE);
+-            if (clh_is_ipi_pending(cpu)) {
++        while (big_kernel_lock.node_owners[getCurrentCPUIndex()].next->value != CLHState_Granted) {
++            if (clh_is_ipi_pending(getCurrentCPUIndex())) {
++
+                 /* Multiple calls for similar reason could result in stack overflow */
+-                assert(big_kernel_lock.ipi.remoteCall != IpiRemoteCall_Stall);
+-                handleIPI(CORE_IRQ_TO_IRQT(cpu, irq_remote_call_ipi), irqPath);
++                assert((IpiRemoteCall_t)remoteCall != IpiRemoteCall_Stall);
++                handleIPI(CORE_IRQ_TO_IRQT(getCurrentCPUIndex(), irq_remote_call_ipi), irqPath);
+             }
+             arch_pause();
+         }
+@@ -82,47 +79,10 @@ void ipiStallCoreCallback(bool_t irqPath)
+     }
+ }
+ 
+-void ipi_wait(void)
+-{
+-    ipi_state_t *ipi = &big_kernel_lock.ipi;
+-    word_t cores = ipi->totalCoreBarrier;
+-    word_t localsense = ipi->globalsense;
+-    word_t *count = &ipi->count;
+-
+-    if (__atomic_fetch_add(count, 1, __ATOMIC_ACQ_REL) == cores) {
+-        *count = 0;
+-        ipi->globalsense++;
+-        __atomic_thread_fence(__ATOMIC_RELEASE);
+-    }
+-    /* Check globalsense instead of count to protect against a race where
+-     * a new IPI started before this core saw that the old one finished. */
+-    while (localsense == ipi->globalsense) {
+-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+-        arch_pause();
+-    }
+-}
+-
+-static inline void init_ipi_args(IpiRemoteCall_t func,
+-                                 word_t data1, word_t data2, word_t data3,
+-                                 word_t mask)
+-{
+-    ipi_state_t *ipi = &big_kernel_lock.ipi;
+-
+-    ipi->remoteCall = func;
+-    ipi->args[0] = data1;
+-    ipi->args[1] = data2;
+-    ipi->args[2] = data3;
+-
+-    /* get number of cores involved in this IPI */
+-    ipi->totalCoreBarrier = popcountl(mask);
+-}
+-
+ void handleIPI(irq_t irq, bool_t irqPath)
+ {
+-    ipi_state_t *ipi = &big_kernel_lock.ipi;
+-
+     if (IRQT_TO_IRQ(irq) == irq_remote_call_ipi) {
+-        handleRemoteCall(ipi->remoteCall, ipi->args[0], ipi->args[1], ipi->args[2], irqPath);
++        handleRemoteCall(remoteCall, get_ipi_arg(0), get_ipi_arg(1), get_ipi_arg(2), irqPath);
+     } else if (IRQT_TO_IRQ(irq) == irq_reschedule_ipi) {
+         rescheduleRequired();
+ #ifdef CONFIG_ARCH_RISCV
+@@ -146,7 +106,7 @@ void doRemoteMaskOp(IpiRemoteCall_t func, word_t data1, word_t data2, word_t dat
+         /* make sure no resource access passes from this point */
+         asm volatile("" ::: "memory");
+         ipi_send_mask(CORE_IRQ_TO_IRQT(0, irq_remote_call_ipi), mask, true);
+-        ipi_wait();
++        ipi_wait(totalCoreBarrier);
+     }
+ }
+ 
+@@ -167,13 +127,7 @@ void generic_ipi_send_mask(irq_t ipi, word_t mask, bool_t isBlocking)
+     while (mask) {
+         int index = wordBits - 1 - clzl(mask);
+         if (isBlocking) {
+-            /*
+-             * All writes before setting ipi to 1 must be observed,
+-             * as other cores may check the ipi flag at any moment.
+-             * IPI_MEM_BARRIER is too late to prevent reordering
+-             * between IPI data and flag reads.
+-             */
+-            __atomic_store_n(&big_kernel_lock.node[index].ipi, 1, __ATOMIC_RELEASE);
++            big_kernel_lock.node_owners[index].ipi = 1;
+             target_cores[nr_target_cores] = index;
+             nr_target_cores++;
+         } else {
+diff --git a/src/smp/lock.c b/src/smp/lock.c
+index 051bb71ce..a4b9bd522 100644
+--- a/src/smp/lock.c
++++ b/src/smp/lock.c
+@@ -5,25 +5,21 @@
+  */
+ 
+ #include <config.h>
+-#include <assert.h>
+ #include <smp/lock.h>
+ 
+ #ifdef ENABLE_SMP_SUPPORT
+-compile_assert(BKL_not_padded, sizeof(big_kernel_lock) % EXCL_RES_GRANULE_SIZE == 0);
+ 
+-clh_lock_t big_kernel_lock;
++clh_lock_t big_kernel_lock ALIGN(L1_CACHE_LINE_SIZE);
+ 
+ BOOT_CODE void clh_lock_init(void)
+ {
+-    /* Check if linker honoured alignment */
+-    assert(((seL4_Word)&big_kernel_lock) % EXCL_RES_GRANULE_SIZE == 0);
+     for (int i = 0; i < CONFIG_MAX_NUM_NODES; i++) {
+-        big_kernel_lock.node[i].myreq = &big_kernel_lock.request[i];
++        big_kernel_lock.node_owners[i].node = &big_kernel_lock.nodes[i];
+     }
+ 
+-    /* Initialize the CLH tail */
+-    big_kernel_lock.request[CONFIG_MAX_NUM_NODES].state = CLHState_Granted;
+-    big_kernel_lock.tail = &big_kernel_lock.request[CONFIG_MAX_NUM_NODES];
++    /* Initialize the CLH head */
++    big_kernel_lock.nodes[CONFIG_MAX_NUM_NODES].value = CLHState_Granted;
++    big_kernel_lock.head = &big_kernel_lock.nodes[CONFIG_MAX_NUM_NODES];
+ }
+ 
+ #endif /* ENABLE_SMP_SUPPORT */
+diff --git a/tools/dts/cheshire.dts b/tools/dts/cheshire.dts
+deleted file mode 100644
+index a52861672..000000000
+--- a/tools/dts/cheshire.dts
++++ /dev/null
+@@ -1,118 +0,0 @@
+-// Copyright 2022 ETH Zurich and University of Bologna.
+-// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+-// SPDX-License-Identifier: SHL-0.51
+-//
+-// Nicole Narr <narrn@student.ethz.ch>
+-// Christopher Reinwardt <creinwar@student.ethz.ch>
+-// Axel Vanoni <axvanoni@student.ethz.ch>
+-
+-/dts-v1/;
+-/ {
+-  #address-cells = <2>;
+-  #size-cells = <2>;
+-  compatible = "eth,cheshire-dev";
+-  model = "eth,cheshire";
+-  chosen {
+-    console = "/soc/serial@3002000";
+-    stdout-path = "/soc/serial@3002000:115200";
+-    linux,initrd-start = <0x84000000>;
+-    linux,initrd-end = <0x85600000>;
+-  };
+-  memory@80000000 {
+-    device_type = "memory";
+-    reg = <0x0 0x80000000 0x0 0x40000000>;
+-  };
+-  cpus {
+-    #address-cells = <1>;
+-    #size-cells = <0>;
+-    timebase-frequency = <1000000>; // 1 MHz
+-    CPU0: cpu@0 {
+-      device_type = "cpu";
+-      status = "okay";
+-      compatible = "eth,cheshire", "riscv";
+-      clock-frequency = <50000000>; // 50 MHz
+-      riscv,isa = "rv64imafdch";
+-      mmu-type = "riscv,sv39";
+-      tlb-split;
+-      reg = <0>;
+-      CPU0_intc: interrupt-controller {
+-        #address-cells = <0>;
+-        #interrupt-cells = <1>;
+-        interrupt-controller;
+-        compatible = "riscv,cpu-intc";
+-      };
+-    };
+-  };
+-  soc: soc {
+-    #address-cells = <2>;
+-    #size-cells = <2>;
+-    compatible = "eth,cheshire-bare-soc", "simple-bus";
+-    ranges;
+-    debug@0 {
+-      compatible = "riscv,debug-013";
+-      reg-names = "control";
+-      reg = <0x0 0x0 0x0 0x1000>;
+-    };
+-    axi_llc@3001000 {
+-      compatible = "eth,axi-llc";
+-      reg = <0x0 0x3001000 0x0 0x5000>;
+-    };
+-    ddr_link: memory-controller@3006000 {
+-      compatible = "eth,ddr-link";
+-      reg = <0x0 0x3006000 0x0 0x1000>;
+-    };
+-    serial@3002000 {
+-      compatible = "ns16550a";
+-      clock-frequency = <50000000>; // 50 MHz
+-      current-speed = <115200>;
+-      interrupt-parent = <&PLIC0>;
+-      interrupts = <1>;
+-      reg = <0x0 0x3002000 0x0 0x1000>;
+-      reg-shift = <2>; // regs are spaced on 32 bit boundary
+-      reg-io-width = <4>; // only 32-bit access are supported
+-    };
+-    i2c@3003000 {
+-      compatible = "eth,i2c";
+-      interrupt-parent = <&PLIC0>;
+-      interrupts = <2 3 4 5 6 7 8 9 10 11 12 13 14 15 16>;
+-      reg = <0x0 0x3003000 0x0 0x1000>;
+-    };
+-    spi@3004000 {
+-      compatible = "opentitan,spi-host", "lowrisc,spi";
+-      interrupt-parent = <&PLIC0>;
+-      interrupts = <17 18>;
+-      reg = <0x0 0x3004000 0x0 0x1000>;
+-      clock-frequency = <50000000>;
+-      max-frequency = <25000000>;
+-      #address-cells = <1>;
+-      #size-cells = <0>;
+-      mmc@0 {
+-        compatible = "mmc-spi-slot";
+-        reg = <0>;
+-        spi-max-frequency = <25000000>;
+-        voltage-ranges = <3300 3300>;
+-        disable-wp;
+-      };
+-    };
+-    vga@3007000 {
+-      compatible = "eth,axi-vga";
+-      reg = <0x0 0x3007000 0x0 0x1000>;
+-    };
+-    clint@2040000 {
+-      compatible = "riscv,clint0";
+-      interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7>;
+-      reg-names = "control";
+-      reg = <0x0 0x2040000 0x0 0x040000>;
+-    };
+-    PLIC0: interrupt-controller@4000000 {
+-      compatible = "riscv,plic0";
+-      #address-cells = <0>;
+-      #interrupt-cells = <1>;
+-      interrupt-controller;
+-      interrupts-extended = <&CPU0_intc 11 &CPU0_intc 9>;
+-      riscv,max-priority = <7>;
+-      riscv,ndev = <51>;
+-      reg = <0x0 0x4000000 0x0 0x4000000>;
+-    };
+-  };
+-};
+diff --git a/tools/flags.cmake b/tools/flags.cmake
+index 5895e8354..d72c645a5 100644
+--- a/tools/flags.cmake
++++ b/tools/flags.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ # Set the cmake compilation flags with kernel base flags
+ # This allows, for example, user compilation to ensure they are building for the same
+diff --git a/tools/hardware.yml b/tools/hardware.yml
+index d780f7de4..1ccaf824e 100644
+--- a/tools/hardware.yml
++++ b/tools/hardware.yml
+@@ -209,7 +209,7 @@ devices:
+         kernel: PLIC_PPTR
+         kernel_size: 0x04000000
+ 
+-  # SiFive CLINT (HiFive, Polarfire, Ariane, Cheshire, QEMU RISC-V virt, Spike)
++  # SiFive CLINT (HiFive, Polarfire, Ariane, QEMU RISC-V virt, Spike)
+   # Note that not all CLINTs with this compatible string are of the same size.
+   # However, omitting the kernel_size field works as each kernel device frame
+   # is of size 0x200000, which is currently larger than the CLINT's of all
+diff --git a/tools/hardware/config.py b/tools/hardware/config.py
+index 06608020d..1922ef723 100644
+--- a/tools/hardware/config.py
++++ b/tools/hardware/config.py
+@@ -19,6 +19,11 @@ class Config:
+         ''' Used to align the base of physical memory. Returns alignment size in bits. '''
+         return 0
+ 
++    def get_bootloader_reserve(self) -> int:
++        ''' Used to reserve a fixed amount of memory for the bootloader. Offsets
++            the kernel load address by the amount returned in bytes. '''
++        return 0
++
+     def get_page_bits(self) -> int:
+         ''' Get page size in bits for this arch '''
+         return 12  # 4096-byte pages
+@@ -30,6 +35,15 @@ class Config:
+         ''' Get page size in bits for mapping devices for this arch '''
+         return self.get_page_bits()
+ 
++    def align_memory(self, regions: Set[Region]) -> List[Region]:
++        ''' Given a set of regions, sort them and align the first so that the
++        ELF loader will be able to load the kernel into it. Will return the
++        aligned memory region list, a set of any regions of memory that were
++        aligned out and the physBase value that the kernel will use. memory
++        region list, a set of any regions of memory that were aligned out and
++        the physBase value that the kernel will use. '''
++        pass
++
+ 
+ class ARMConfig(Config):
+     ''' Config class for ARM '''
+@@ -43,6 +57,20 @@ class ARMConfig(Config):
+         ''' On AArch32 the kernel requires at least super section alignment for physBase. '''
+         return self.SUPERSECTION_BITS
+ 
++    def align_memory(self, regions: Set[Region]) -> List[Region]:
++        ''' Arm wants physBase to be the physical load address of the kernel. '''
++        ret = sorted(regions)
++        extra_reserved = set()
++
++        new = ret[0].align_base(self.get_kernel_phys_align())
++        resv = Region(ret[0].base, new.base - ret[0].base)
++        extra_reserved.add(resv)
++        ret[0] = new
++
++        physBase = ret[0].base
++
++        return ret, extra_reserved, physBase
++
+ 
+ class RISCVConfig(Config):
+     ''' Config class for RISCV '''
+@@ -51,6 +79,28 @@ class RISCVConfig(Config):
+     MEGAPAGE_BITS_RV64 = 21  # 2^21 = 2 MiByte
+     MEGA_PAGE_SIZE_RV64 = 2**MEGAPAGE_BITS_RV64
+ 
++    def get_bootloader_reserve(self) -> int:
++        ''' OpenSBI reserved the first 2 MiByte of physical memory on rv64,
++        which is exactly a megapage. For rv32 we use the same value for now, as
++        this seems to work nicely - even if this is just half of the 4 MiByte
++        magepages that exist there. '''
++        return self.MEGA_PAGE_SIZE_RV64
++
++    def align_memory(self, regions: Set[Region]) -> List[Region]:
++        ''' Currently the RISC-V port expects physBase to be the address that the
++        bootloader is loaded at. To be generalised in the future. '''
++        ret = sorted(regions)
++        extra_reserved = set()
++
++        physBase = ret[0].base
++
++        resv = Region(ret[0].base, self.get_bootloader_reserve())
++        extra_reserved.add(resv)
++        ret[0].base += self.get_bootloader_reserve()
++        ret[0].size -= self.get_bootloader_reserve()
++
++        return ret, extra_reserved, physBase
++
+     def get_device_page_bits(self) -> int:
+         ''' Get page size in bits for mapping devices for this arch '''
+         if (self.sel4arch == 'riscv32'):
+diff --git a/tools/hardware/outputs/c_header.py b/tools/hardware/outputs/c_header.py
+index fdc7a9705..9cab57ef0 100644
+--- a/tools/hardware/outputs/c_header.py
++++ b/tools/hardware/outputs/c_header.py
+@@ -131,7 +131,7 @@ static const p_region_t BOOT_RODATA avail_p_regs[] = {
+ '''
+ 
+ 
+-def get_kernel_devices(tree: FdtParser, hw_yaml: HardwareYaml, kernel_config_dict: Dict[str, str]) -> (List, Dict):
++def get_kernel_devices(tree: FdtParser, hw_yaml: HardwareYaml) -> (List, Dict):
+     '''
+     Given a device tree and a set of rules, returns a tuple (groups, offsets).
+ 
+@@ -208,12 +208,12 @@ def create_c_header_file(config, kernel_irqs: List, kernel_macros: Dict,
+         outputStream.write(data)
+ 
+ 
+-def run(tree: FdtParser, hw_yaml: HardwareYaml, config: Config, kernel_config_dict, args: argparse.Namespace):
++def run(tree: FdtParser, hw_yaml: HardwareYaml, config: Config, args: argparse.Namespace):
+     if not args.header_out:
+         raise ValueError('You need to specify a header-out to use c header output')
+ 
+     physical_memory, reserved, physBase = hardware.utils.memory.get_physical_memory(tree, config)
+-    kernel_regions, kernel_macros = get_kernel_devices(tree, hw_yaml, kernel_config_dict)
++    kernel_regions, kernel_macros = get_kernel_devices(tree, hw_yaml)
+ 
+     create_c_header_file(
+         config,
+diff --git a/tools/hardware/outputs/compat_strings.py b/tools/hardware/outputs/compat_strings.py
+index 7b14a0ab1..3fe67ffa8 100644
+--- a/tools/hardware/outputs/compat_strings.py
++++ b/tools/hardware/outputs/compat_strings.py
+@@ -9,11 +9,10 @@ import argparse
+ from hardware.config import Config
+ from hardware.fdt import FdtParser
+ from hardware.utils.rule import HardwareYaml
+-from typing import Dict
+ 
+ 
+ def run(tree: FdtParser, hw_yaml: HardwareYaml, config: Config,
+-        kernel_config_dict: Dict[str, str], args: argparse.Namespace):
++        args: argparse.Namespace):
+     if not args.compat_strings_out:
+         raise ValueError('You need to specify a compat-strings-out to use compat strings output')
+     chosen = tree.get_kernel_devices()
+diff --git a/tools/hardware/outputs/elfloader.py b/tools/hardware/outputs/elfloader.py
+index 24af655d4..2d00712be 100644
+--- a/tools/hardware/outputs/elfloader.py
++++ b/tools/hardware/outputs/elfloader.py
+@@ -12,7 +12,7 @@ import logging
+ import pyfdt.pyfdt
+ 
+ from jinja2 import Environment, BaseLoader
+-from typing import Dict, List
++from typing import List
+ 
+ from hardware import config, device, fdt
+ from hardware.utils import cpu, memory, rule
+@@ -140,7 +140,7 @@ def get_elfloader_cpus(tree: fdt.FdtParser, devices: List[device.WrappedNode]) -
+     return sorted(cpu_info, key=lambda a: a['cpuid'])
+ 
+ 
+-def run(tree: fdt.FdtParser, hardware: rule.HardwareYaml, config: config.Config, kernel_config_dict: Dict[str, str], args: argparse.Namespace):
++def run(tree: fdt.FdtParser, hardware: rule.HardwareYaml, config: config.Config, args: argparse.Namespace):
+     devices = tree.get_elfloader_devices()
+     cpu_info = get_elfloader_cpus(tree, devices)
+ 
+diff --git a/tools/hardware/outputs/json.py b/tools/hardware/outputs/json.py
+index 99044f3e1..d10fcae88 100644
+--- a/tools/hardware/outputs/json.py
++++ b/tools/hardware/outputs/json.py
+@@ -8,7 +8,7 @@
+ 
+ import argparse
+ import json
+-from typing import Dict, List
++from typing import List
+ import hardware
+ from hardware.config import Config
+ from hardware.fdt import FdtParser
+@@ -35,29 +35,24 @@ def create_json_file(dev_mem, phys_mem, output_stream):
+         json.dump(json_obj, output_stream)
+ 
+ 
+-def get_kernel_devices(tree: FdtParser, hw_yaml: HardwareYaml, kernel_config_dict: Dict[str, str]):
++def get_kernel_devices(tree: FdtParser, hw_yaml: HardwareYaml):
+     kernel_devices = tree.get_kernel_devices()
+ 
+     groups = []
+     for dev in kernel_devices:
+         rule = hw_yaml.get_rule(dev)
+-        new_regions = rule.get_regions(dev)
+-        for reg in new_regions:
+-            if reg.macro in kernel_config_dict:
+-                if kernel_config_dict[reg.macro] != "ON":
+-                    continue
+-            groups.append(reg)
++        groups += rule.get_regions(dev)
+ 
+     return groups
+ 
+ 
+ def run(tree: FdtParser, hw_yaml: HardwareYaml, config: Config,
+-        kernel_config_dict, args: argparse.Namespace):
++        args: argparse.Namespace):
+     if not args.json_out:
+         raise ValueError('you need to provide a json-out to use the JSON output method')
+ 
+     phys_mem, reserved, _ = hardware.utils.memory.get_physical_memory(tree, config)
+-    kernel_devs = get_kernel_devices(tree, hw_yaml, kernel_config_dict)
++    kernel_devs = get_kernel_devices(tree, hw_yaml)
+     dev_mem = hardware.utils.memory.get_addrspace_exclude(
+         list(reserved) + phys_mem + kernel_devs, config)
+ 
+diff --git a/tools/hardware/outputs/yaml.py b/tools/hardware/outputs/yaml.py
+index 23ab54103..3a35fd8bd 100644
+--- a/tools/hardware/outputs/yaml.py
++++ b/tools/hardware/outputs/yaml.py
+@@ -8,7 +8,7 @@
+ 
+ import argparse
+ import yaml
+-from typing import Dict, List
++from typing import List
+ import hardware
+ from hardware.config import Config
+ from hardware.fdt import FdtParser
+@@ -40,29 +40,24 @@ def create_yaml_file(dev_mem, phys_mem, outputStream):
+         yaml.dump(yaml_obj, outputStream)
+ 
+ 
+-def get_kernel_devices(tree: FdtParser, hw_yaml: HardwareYaml, kernel_config_dict: Dict[str, str]):
++def get_kernel_devices(tree: FdtParser, hw_yaml: HardwareYaml):
+     kernel_devices = tree.get_kernel_devices()
+ 
+     groups = []
+     for dev in kernel_devices:
+         rule = hw_yaml.get_rule(dev)
+-        new_regions = rule.get_regions(dev)
+-        for reg in new_regions:
+-            if reg.macro in kernel_config_dict:
+-                if kernel_config_dict[reg.macro] != "ON":
+-                    continue
+-            groups.append(reg)
++        groups += rule.get_regions(dev)
+ 
+     return groups
+ 
+ 
+ def run(tree: FdtParser, hw_yaml: HardwareYaml, config: Config,
+-        kernel_config_dict, args: argparse.Namespace):
++        args: argparse.Namespace):
+     if not args.yaml_out:
+         raise ValueError('you need to provide a yaml-out to use the yaml output method')
+ 
+     phys_mem, reserved, _ = hardware.utils.memory.get_physical_memory(tree, config)
+-    kernel_devs = get_kernel_devices(tree, hw_yaml, kernel_config_dict)
++    kernel_devs = get_kernel_devices(tree, hw_yaml)
+     dev_mem = hardware.utils.memory.get_addrspace_exclude(
+         list(reserved) + phys_mem + kernel_devs, config)
+ 
+diff --git a/tools/hardware/utils/memory.py b/tools/hardware/utils/memory.py
+index 6fcb227bb..6fc39726f 100644
+--- a/tools/hardware/utils/memory.py
++++ b/tools/hardware/utils/memory.py
+@@ -83,31 +83,12 @@ def reserve_regions(regions: Set[Region], reserved: Set[Region]) -> Set[Region]:
+     return ret
+ 
+ 
+-def align_memory(regions: Set[Region], config: Config) -> List[Region]:
+-    ''' Given a set of regions, sort them and align the first so that the
+-    ELF loader will be able to load the kernel into it. Will return the
+-    aligned memory region list, a set of any regions of memory that were
+-    aligned out and the physBase value that the kernel will use. '''
+-
+-    ret = sorted(regions)
+-    extra_reserved = set()
+-
+-    if config.get_kernel_phys_align() != 0:
+-        new = ret[0].align_base(config.get_kernel_phys_align())
+-        resv = Region(ret[0].base, new.base - ret[0].base)
+-        extra_reserved.add(resv)
+-        ret[0] = new
+-
+-    physBase = ret[0].base
+-    return ret, extra_reserved, physBase
+-
+-
+ def get_physical_memory(tree: FdtParser, config: Config) -> List[Region]:
+     ''' returns a list of regions representing physical memory as used by the kernel '''
+     regions = merge_memory_regions(get_memory_regions(tree))
+     reserved = parse_reserved_regions(tree.get_path('/reserved-memory'))
+     regions = reserve_regions(regions, reserved)
+-    regions, extra_reserved, physBase = align_memory(regions, config)
++    regions, extra_reserved, physBase = config.align_memory(regions)
+ 
+     return regions, reserved.union(extra_reserved), physBase
+ 
+diff --git a/tools/hardware_gen.py b/tools/hardware_gen.py
+index 1b95986ce..481fbe2b3 100644
+--- a/tools/hardware_gen.py
++++ b/tools/hardware_gen.py
+@@ -59,7 +59,7 @@ def main(args: argparse.Namespace):
+     arg_dict = vars(args)
+     for t in sorted(OUTPUTS.keys()):
+         if arg_dict[t]:
+-            OUTPUTS[t].run(parsed_dt, hw_yaml, cfg, kernel_config_dict, args)
++            OUTPUTS[t].run(parsed_dt, hw_yaml, cfg, args)
+ 
+ 
+ if __name__ == '__main__':
+@@ -75,8 +75,6 @@ if __name__ == '__main__':
+                         required=True, type=argparse.FileType('r'))
+     parser.add_argument('--sel4arch', help='seL4 architecture to generate for',
+                         required=True)
+-    parser.add_argument('--kernel-config-flags',
+-                        help='List of kernel config params', action='append', nargs='+')
+     parser.add_argument('--addrspace-max',
+                         help='maximum address that is available as device untyped', type=int, default=32)
+ 
+@@ -87,12 +85,6 @@ if __name__ == '__main__':
+ 
+     args = parser.parse_args()
+ 
+-    kernel_config_dict = dict()
+-    if args.kernel_config_flags:
+-        for option in sum(args.kernel_config_flags, []):
+-            name, val = option.split('=')
+-            kernel_config_dict[name] = val
+-
+     if args.enable_profiling:
+         import cProfile
+         cProfile.run('main(args)', sort='cumtime')
+diff --git a/tools/helpers.cmake b/tools/helpers.cmake
+index 0c7768a35..312ad4898 100644
+--- a/tools/helpers.cmake
++++ b/tools/helpers.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.8.2)
+ 
+ # Wrapper function around find_file that generates a fatal error if it isn't found
+ # Is equivalent to find_file except that it adds CMAKE_CURRENT_SOURCE_DIR as a path and sets
+diff --git a/tools/internal.cmake b/tools/internal.cmake
+index e47f4853f..2ae3e42c6 100644
+--- a/tools/internal.cmake
++++ b/tools/internal.cmake
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ #
+ 
+-cmake_minimum_required(VERSION 3.16.0)
++cmake_minimum_required(VERSION 3.7.2)
+ 
+ # File for helpers that are very specific to the kernel
+ 
