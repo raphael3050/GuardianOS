@@ -1,0 +1,194 @@
+%% Creator: Inkscape 1.4 (e7c3feb1, 2024-10-09), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'guardianos_seL4_qemu.drawio_svg-tex.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{692.25bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.81473456)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.36930088,0.46858072){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$seL4$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.03343956,0.45774648){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$S$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.36930088,0.38190683){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$OpenSBI$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.03343956,0.38732394){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$M$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.15261616,0.72860238){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Security Monitor\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.5859856,0.72860238){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}trusted app\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.03343956,0.63651138){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$U$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.03343956,0.20855905){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Bus PCI\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.65099102,0.08938245){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$ Trusted\  IP$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.86767574,0.08938245){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$ Untrusted\  IP$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.5859856,0.70260022){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}process\_t\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.08761074,0.12730228){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$$0x0000000$$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.08761074,0.1056338){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$$...$$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.08761074,0.08396533){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$$0xFFFFFFF$$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.38013512,0.72860238){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}untrusted app\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.38013512,0.70260022){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}process\_t\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.34615385,0.66684724){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}tcb\_t\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=18]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.43282774,0.66684724){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}tcb\_t\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=19]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.38978097,0.79469122){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}capabilities\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=20]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.15261616,0.71235103){\color[rgb]{1,0.2,0.2}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Root Task\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=21]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.85684151,0.75568797){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$CSR's$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=22]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.7340195){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x000\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=23]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.42347206,0.12188516){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$Security\ Oracle$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=24]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.91609719,0.73116878){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Unprivileged and\\User level\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=25]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.91642981,0.66901408){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Supervisor-Level\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=26]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.91642981,0.6148429){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Hypervisor\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=27]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.91642981,0.57150596){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Machine-Level\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=28]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.71235103){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xCFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=29]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.69068256){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x100\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=30]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.64734561){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xDFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=31]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.60400867){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xDFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=32]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.62567714){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x200\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=33]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.56067172){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xFFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=34]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.5823402){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x300\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=35]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.36930088,0.08396533){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}source\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=36]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.42347206,0.08396533){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}dest\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=37]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.47764324,0.08396533){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}right\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=38]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.47764324,0.06229686){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=39]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.47764324,0.04062839){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=40]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.65099102,0.1652221){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}wrapper\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=41]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.86767574,0.1652221){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}wrapper\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=42]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.79725321,0.66901408){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x5C0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=43]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.36930088,0.32773564){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$MMU$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=44]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.36782232,0.30606717){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}memory dispatch\\read \& write\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=45]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.88195462,0.46393425){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}IP device\_id\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=46]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.90177611,0.43184421){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Thread / Process id\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=47]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.81675483,0.38732394){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$U$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=48]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.81675483,0.35482124){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$S$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=49]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.81675483,0.32231853){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$M$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=50]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.87669087,0.38771838){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}User mode\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=51]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.89438938,0.35521568){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Supervisor mode\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=52]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.88846967,0.32259884){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Machine mode\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=53]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.42347206,0.01895991){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=54]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.36930088,0.01895991){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=55]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.47764324,0.01895991){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=56]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.33679817,0.64192849){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Cspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=57]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.33679817,0.61809317){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Vspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=58]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.88857394,0.27677237){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}seL4 capability\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=59]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.55200433,0.66684724){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}tcb\_t\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=60]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.54264866,0.64192849){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Cspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=61]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.54264866,0.61809317){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Vspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=62]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.63759483,0.66684724){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}tcb\_t\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=63]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.19053598,0.46858072){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}TCB Configure\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=64]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.15261616,0.68309859){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}create a process\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=65]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.15358074,0.64350115){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}set the id based on\\the trust\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=66]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.15344489,0.5949612){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}isolate cspace \&\\vspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=67]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.46686813,0.46823056){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}schedule\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=68]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+    \put(0.59168415,0.47656609){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}write the task id\\to the CSR\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=69]{guardianos_seL4_qemu.drawio_svg-tex.pdf}}%
+  \end{picture}%
+\endgroup%

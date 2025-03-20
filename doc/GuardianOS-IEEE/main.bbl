@@ -1,0 +1,632 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{brasser_sanctuary_2019}{inproceedings}{}{}
+      \name{author}{5}{}{%
+        {{hash=286738ff031f8e08c17889bedca9d868}{%
+           family={Brasser},
+           familyi={B\bibinitperiod},
+           given={Ferdinand},
+           giveni={F\bibinitperiod}}}%
+        {{hash=18cf4e3f6e31f8aadcf3e25b9586b364}{%
+           family={Gens},
+           familyi={G\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=d6c5fc90c8f5f0ec072f6cac87639652}{%
+           family={Jauernig},
+           familyi={J\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+        {{hash=1ef0c377dd3d4449f949ff3fedd1a7f6}{%
+           family={Sadeghi},
+           familyi={S\bibinitperiod},
+           given={Ahmad-Reza},
+           giveni={A\bibinithyphendelim R\bibinitperiod}}}%
+        {{hash=de4acf56c0b5fa6e801434871ca39f6a}{%
+           family={Stapf},
+           familyi={S\bibinitperiod},
+           given={Emmanuel},
+           giveni={E\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{location}{1}{%
+        {San Diego, CA}%
+      }
+      \list{publisher}{1}{%
+        {Internet Society}%
+      }
+      \strng{namehash}{021c2844e6dbedaa95a8637b9dd5170c}
+      \strng{fullhash}{37a65fac6c734b526a5806b4188ed966}
+      \strng{fullhashraw}{37a65fac6c734b526a5806b4188ed966}
+      \strng{bibnamehash}{021c2844e6dbedaa95a8637b9dd5170c}
+      \strng{authorbibnamehash}{021c2844e6dbedaa95a8637b9dd5170c}
+      \strng{authornamehash}{021c2844e6dbedaa95a8637b9dd5170c}
+      \strng{authorfullhash}{37a65fac6c734b526a5806b4188ed966}
+      \strng{authorfullhashraw}{37a65fac6c734b526a5806b4188ed966}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{ARM TrustZone is one of the most widely deployed security architecture providing Trusted Execution Environments (TEEs). Unfortunately, its usage and potential beneﬁts for application developers and end users are largely limited due to restricted deployment policies imposed by device vendors. Restriction is enforced since every Trusted App (TA) increases the TEE’s attack surface: any vulnerable or malicious TA can compromise the system’s security. Hence, deploying a TA requires mutual trust between device vendor and application developer, incurring high costs for both. Vendors work around this by offering interfaces to selected TEE functionalities, however, these are not sufﬁcient to securely implement advanced mobile services like banking. Extensive discussion of Intel’s SGX technology in academia and industry has unveiled the demand for an unrestricted use of TEEs, yet no comparable security architecture for mobile devices exists to this day.}
+      \field{booktitle}{Proceedings 2019 {Network} and {Distributed} {System} {Security} {Symposium}}
+      \field{isbn}{978-1-891562-55-6}
+      \field{shorttitle}{{SANCTUARY}}
+      \field{title}{{SANCTUARY}: {ARMing} {TrustZone} with {User}-space {Enclaves}}
+      \field{urlday}{2}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.14722/ndss.2019.23448
+      \endverb
+      \verb{file}
+      \verb PDF:/Users/raphael/Zotero/storage/K9XKWKET/Brasser et al. - 2019 - SANCTUARY ARMing TrustZone with User-space Enclaves.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://www.ndss-symposium.org/wp-content/uploads/2019/02/ndss2019_01A-1_Brasser_paper.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.ndss-symposium.org/wp-content/uploads/2019/02/ndss2019_01A-1_Brasser_paper.pdf
+      \endverb
+    \endentry
+    \entry{costan_sanctum_2015}{misc}{}{}
+      \name{author}{3}{}{%
+        {{hash=51a352c7306910a4bef62e293e6097ea}{%
+           family={Costan},
+           familyi={C\bibinitperiod},
+           given={Victor},
+           giveni={V\bibinitperiod}}}%
+        {{hash=e29f747c25ab40c327676fb866d89751}{%
+           family={Lebedev},
+           familyi={L\bibinitperiod},
+           given={Ilia},
+           giveni={I\bibinitperiod}}}%
+        {{hash=4be4060700fa73556250f6feefb96f46}{%
+           family={Devadas},
+           familyi={D\bibinitperiod},
+           given={Srinivas},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{fullhash}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{fullhashraw}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{bibnamehash}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{authorbibnamehash}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{authornamehash}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{authorfullhash}{9b6ee2e706368ea72f0e3364141770d7}
+      \strng{authorfullhashraw}{9b6ee2e706368ea72f0e3364141770d7}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Sanctum offers the same promise as SGX, namely strong provable isolation of software modules running concurrently and sharing resources, but protects against an important class of additional software attacks that infer private information from a program's memory access patterns. We follow a principled approach to eliminating entire attack surfaces through isolation, rather than plugging attack-specific privacy leaks. Sanctum demonstrates that strong software isolation is achievable with a surprisingly small set of minimally invasive hardware changes, and a very reasonable overhead. Sanctum does not change any major CPU building block. Instead, we add hardware at the interfaces between building blocks, without impacting cycle time. Our prototype shows a 2\% area increase in a Rocket RISC-V core. Over a set of benchmarks, Sanctum's worst observed overhead for isolated execution is 15.1\% over an idealized insecure baseline, and 2.7\% average overhead over a representative insecure baseline.}
+      \field{note}{Publication info: Published elsewhere. Minor revision. USENIX Security Symposium 2016}
+      \field{shorttitle}{Sanctum}
+      \field{title}{Sanctum: {Minimal} {Hardware} {Extensions} for {Strong} {Software} {Isolation}}
+      \field{urlday}{16}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{year}{2015}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb Full Text PDF:/Users/raphael/Zotero/storage/UK6MM2R2/Costan et al. - 2015 - Sanctum Minimal Hardware Extensions for Strong Software Isolation.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://eprint.iacr.org/2015/564
+      \endverb
+      \verb{url}
+      \verb https://eprint.iacr.org/2015/564
+      \endverb
+    \endentry
+    \entry{heiser_sel4_nodate}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=22cbcffae9ccc9f40eba5c2eda212e66}{%
+           family={Heiser},
+           familyi={H\bibinitperiod},
+           given={Gernot},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{fullhash}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{fullhashraw}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{bibnamehash}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{authorbibnamehash}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{authornamehash}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{authorfullhash}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \strng{authorfullhashraw}{22cbcffae9ccc9f40eba5c2eda212e66}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The {seL4} {Microkernel} – {An} {Introduction}}
+      \verb{file}
+      \verb PDF:/Users/raphael/Zotero/storage/A82MSJGB/Heiser - The seL4 Microkernel – An Introduction.pdf:application/pdf
+      \endverb
+    \endentry
+    \entry{k_risc-v_2023}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=89598eddfb596030b19fb50326750442}{%
+           family={K},
+           familyi={K\bibinitperiod},
+           given={Karthik\bibnamedelima B.},
+           giveni={K\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{89598eddfb596030b19fb50326750442}
+      \strng{fullhash}{89598eddfb596030b19fb50326750442}
+      \strng{fullhashraw}{89598eddfb596030b19fb50326750442}
+      \strng{bibnamehash}{89598eddfb596030b19fb50326750442}
+      \strng{authorbibnamehash}{89598eddfb596030b19fb50326750442}
+      \strng{authornamehash}{89598eddfb596030b19fb50326750442}
+      \strng{authorfullhash}{89598eddfb596030b19fb50326750442}
+      \strng{authorfullhashraw}{89598eddfb596030b19fb50326750442}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Discussing RISC-V PMPs in depth.}
+      \field{journaltitle}{Medium}
+      \field{month}{11}
+      \field{shorttitle}{{RISC}-{V} {Memory} {Protection}}
+      \field{title}{{RISC}-{V} {Memory} {Protection}: {Diving} {Deep} into the {Complexities}}
+      \field{urlday}{12}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2023}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb Snapshot:/Users/raphael/Zotero/storage/MX5KJW2N/risc-v-memory-protection-diving-deep-into-the-complexities-9d751212be6b.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb https://medium.com/@talktokarthikbk/risc-v-memory-protection-diving-deep-into-the-complexities-9d751212be6b
+      \endverb
+      \verb{url}
+      \verb https://medium.com/@talktokarthikbk/risc-v-memory-protection-diving-deep-into-the-complexities-9d751212be6b
+      \endverb
+    \endentry
+    \entry{lee_keystone_2019}{misc}{}{}
+      \name{author}{5}{}{%
+        {{hash=bb427c39cac57fc37d412f92e18ce221}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Dayeol},
+           giveni={D\bibinitperiod}}}%
+        {{hash=c7d281b4406ca3b3460e7ae12282382b}{%
+           family={Kohlbrenner},
+           familyi={K\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=7d91fac2b7a472f7b8da972b3ca12bcf}{%
+           family={Shinde},
+           familyi={S\bibinitperiod},
+           given={Shweta},
+           giveni={S\bibinitperiod}}}%
+        {{hash=d458d5f9b64652055bd81d57e4777b22}{%
+           family={Song},
+           familyi={S\bibinitperiod},
+           given={Dawn},
+           giveni={D\bibinitperiod}}}%
+        {{hash=6e7da264d2a1b506dc85ba97a65f086a}{%
+           family={Asanović},
+           familyi={A\bibinitperiod},
+           given={Krste},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{8ae7a0a9ec6081930301116c750f00bf}
+      \strng{fullhash}{3c180beb0e7e856fc395a4a764e2f3f8}
+      \strng{fullhashraw}{3c180beb0e7e856fc395a4a764e2f3f8}
+      \strng{bibnamehash}{8ae7a0a9ec6081930301116c750f00bf}
+      \strng{authorbibnamehash}{8ae7a0a9ec6081930301116c750f00bf}
+      \strng{authornamehash}{8ae7a0a9ec6081930301116c750f00bf}
+      \strng{authorfullhash}{3c180beb0e7e856fc395a4a764e2f3f8}
+      \strng{authorfullhashraw}{3c180beb0e7e856fc395a4a764e2f3f8}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Trusted execution environments (TEEs) are being used in all the devices from embedded sensors to cloud servers and encompass a range of cost, power constraints, and security threat model choices. On the other hand, each of the current vendor-specific TEEs makes a fixed set of trade-offs with little room for customization. We present Keystone -- the first open-source framework for building customized TEEs. Keystone uses simple abstractions provided by the hardware such as memory isolation and a programmable layer underneath untrusted components (e.g., OS). We build reusable TEE core primitives from these abstractions while allowing platform-specific modifications and application features. We showcase how Keystone-based TEEs run on unmodified RISC-V hardware and demonstrate the strengths of our design in terms of security, TCB size, execution of a range of benchmarks, applications, kernels, and deployment models.}
+      \field{month}{9}
+      \field{note}{arXiv:1907.10119 [cs]}
+      \field{shorttitle}{Keystone}
+      \field{title}{Keystone: {An} {Open} {Framework} for {Architecting} {TEEs}}
+      \field{urlday}{8}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.1907.10119
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/Users/raphael/Zotero/storage/N4ZAEZD9/Lee et al. - 2019 - Keystone An Open Framework for Architecting TEEs.pdf:application/pdf;Snapshot:/Users/raphael/Zotero/storage/VP6NST4M/1907.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/1907.10119
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/1907.10119
+      \endverb
+      \keyw{Computer Science - Cryptography and Security,Computer Science - Operating Systems}
+    \endentry
+    \entry{menetrey_attestation_2022}{misc}{}{}
+      \name{author}{7}{}{%
+        {{hash=846c181e03bd02a247623ea9c661b47c}{%
+           family={Ménétrey},
+           familyi={M\bibinitperiod},
+           given={Jämes},
+           giveni={J\bibinitperiod}}}%
+        {{hash=badc00ea27ed9725bdb0c93f96e60baf}{%
+           family={Göttel},
+           familyi={G\bibinitperiod},
+           given={Christian},
+           giveni={C\bibinitperiod}}}%
+        {{hash=da5426b73fbd160547e059849694cc42}{%
+           family={Khurshid},
+           familyi={K\bibinitperiod},
+           given={Anum},
+           giveni={A\bibinitperiod}}}%
+        {{hash=177e7ce08a56ba83ffc6284b46caa184}{%
+           family={Pasin},
+           familyi={P\bibinitperiod},
+           given={Marcelo},
+           giveni={M\bibinitperiod}}}%
+        {{hash=6668285eef28becfbea5f2cf39c9dc7b}{%
+           family={Felber},
+           familyi={F\bibinitperiod},
+           given={Pascal},
+           giveni={P\bibinitperiod}}}%
+        {{hash=d8da81f4aefb309c1dca6a501d0b310d}{%
+           family={Schiavoni},
+           familyi={S\bibinitperiod},
+           given={Valerio},
+           giveni={V\bibinitperiod}}}%
+        {{hash=ea4c0ddc24d7a9a585d782353fffb441}{%
+           family={Raza},
+           familyi={R\bibinitperiod},
+           given={Shahid},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{c66c626097c7b036e53b9efb3f42e550}
+      \strng{fullhash}{be04cd3abc3da3844c7fb62675d6b7b2}
+      \strng{fullhashraw}{be04cd3abc3da3844c7fb62675d6b7b2}
+      \strng{bibnamehash}{c66c626097c7b036e53b9efb3f42e550}
+      \strng{authorbibnamehash}{c66c626097c7b036e53b9efb3f42e550}
+      \strng{authornamehash}{c66c626097c7b036e53b9efb3f42e550}
+      \strng{authorfullhash}{be04cd3abc3da3844c7fb62675d6b7b2}
+      \strng{authorfullhashraw}{be04cd3abc3da3844c7fb62675d6b7b2}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Attestation is a fundamental building block to establish trust over software systems. When used in conjunction with trusted execution environments, it guarantees the genuineness of the code executed against powerful attackers and threats, paving the way for adoption in several sensitive application domains. This paper reviews remote attestation principles and explains how the modern and industrially well-established trusted execution environments Intel SGX, Arm TrustZone and AMD SEV, as well as emerging RISC-V solutions, leverage these mechanisms.}
+      \field{month}{9}
+      \field{note}{arXiv:2206.03780}
+      \field{title}{Attestation {Mechanisms} for {Trusted} {Execution} {Environments} {Demystified}}
+      \field{urlday}{14}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb Full Text PDF:/Users/raphael/Zotero/storage/8JLVVNWK/Ménétrey et al. - 2022 - Attestation Mechanisms for Trusted Execution Environments Demystified.pdf:application/pdf;Snapshot:/Users/raphael/Zotero/storage/642LNPWC/2206.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2206.03780
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2206.03780
+      \endverb
+      \keyw{Computer Science - Cryptography and Security,Computer Science - Distributed,Parallel,and Cluster Computing}
+    \endentry
+    \entry{milan_trustsoc_2023}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=102cb94f01c0b16105fb6a847a79b6b1}{%
+           family={Milan},
+           familyi={M\bibinitperiod},
+           given={Raphaele},
+           giveni={R\bibinitperiod}}}%
+        {{hash=947e138ad59fbfb2960a7904a47f2d40}{%
+           family={Bossuet},
+           familyi={B\bibinitperiod},
+           given={Lilian},
+           giveni={L\bibinitperiod}}}%
+        {{hash=e39117f43dec15bca9c0f45f83ef6718}{%
+           family={Lagadec},
+           familyi={L\bibinitperiod},
+           given={Loïc},
+           giveni={L\bibinitperiod}}}%
+        {{hash=ded8a396078a2f8d4ec13cc0bf5a58f8}{%
+           family={Lara-Nino},
+           familyi={L\bibinithyphendelim N\bibinitperiod},
+           given={Carlos\bibnamedelima Andres},
+           giveni={C\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Annecy, France}%
+      }
+      \list{publisher}{1}{%
+        {LISTIC - Laboratoire d'Informatique, Systèmes, Traitement de l'Information et de la Connaissance}%
+      }
+      \strng{namehash}{9e7f6a3257c0e1c739973f529261f392}
+      \strng{fullhash}{98b93f8cdbc293f616722619d3485769}
+      \strng{fullhashraw}{98b93f8cdbc293f616722619d3485769}
+      \strng{bibnamehash}{9e7f6a3257c0e1c739973f529261f392}
+      \strng{authorbibnamehash}{9e7f6a3257c0e1c739973f529261f392}
+      \strng{authornamehash}{9e7f6a3257c0e1c739973f529261f392}
+      \strng{authorfullhash}{98b93f8cdbc293f616722619d3485769}
+      \strng{authorfullhashraw}{98b93f8cdbc293f616722619d3485769}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Au cours des dernières années, les SoC (System-on-a-Chip) hétérogènes embarquant des processeurs à plusieurs coeurs et de la logique programmable ont progressé en terme de complexité et hétérogénéité. D'un point de vue sécurité, cela entraîne une augmentation de la surface d'attaque exploitable par un attaquant pour prendre le contrôle du système et/ou avoir accès à des données sensibles. Pour adresser ce problème, dans cet article, nous proposons les bases d'une architecture de SoC hétérogène de confiance sécurisée par conception appelée TrustSoC. Nous montrons que la sécurité ne doit pas être ajoutée après design, mais plutôt pensée depuis la phase de conception. Nous démontrons aussi que cette sécurité doit considérer tous les composants du SoC : matériels et logiciels. Nous basons notre proposition sur l'extension de la technologie ARM Trust-Zone, des contrôleurs de communication, des règles de fonctionnement et une isolation entre les composants logiciels et matériels et les partitions mémoires.}
+      \field{booktitle}{Conférence francophone d'informatique en {Parallélisme}, {Architecture} et {Système} ({COMPAS})}
+      \field{month}{7}
+      \field{shorttitle}{{TrustSoC}}
+      \field{title}{{TrustSoC} : {Architecture} {SoC} hétérogène légère et efficace sécurisée par conception}
+      \field{urlday}{8}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{year}{2023}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb Full Text PDF:/Users/raphael/Zotero/storage/GL6GCCVS/Milan et al. - 2023 - TrustSoC Architecture SoC hétérogène légère et efficace sécurisée par conception.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://hal.science/hal-04213598
+      \endverb
+      \verb{url}
+      \verb https://hal.science/hal-04213598
+      \endverb
+      \keyw{AXI-4,Fpga,System-on-a-Chip,TrustZone}
+    \endentry
+    \entry{nasahl_hector-v_2021}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=c30f6caae78d2afda573180a088d6378}{%
+           family={Nasahl},
+           familyi={N\bibinitperiod},
+           given={Pascal},
+           giveni={P\bibinitperiod}}}%
+        {{hash=39f2fbdb2bfad872a44bf9476a179bb4}{%
+           family={Schilling},
+           familyi={S\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=219b718be05fd9798a0cb494e7c60472}{%
+           family={Werner},
+           familyi={W\bibinitperiod},
+           given={Mario},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1cdffbc482347edefd718f61814abbc3}{%
+           family={Mangard},
+           familyi={M\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{36c98868347a7fdce6163192655f3dab}
+      \strng{fullhash}{10e1e3ff5663e7a75effa9cdf7f89d40}
+      \strng{fullhashraw}{10e1e3ff5663e7a75effa9cdf7f89d40}
+      \strng{bibnamehash}{36c98868347a7fdce6163192655f3dab}
+      \strng{authorbibnamehash}{36c98868347a7fdce6163192655f3dab}
+      \strng{authornamehash}{36c98868347a7fdce6163192655f3dab}
+      \strng{authorfullhash}{10e1e3ff5663e7a75effa9cdf7f89d40}
+      \strng{authorfullhashraw}{10e1e3ff5663e7a75effa9cdf7f89d40}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{To ensure secure and trustworthy execution of applications in potentially insecure environments, vendors frequently embed trusted execution environments (TEE) into their systems. Applications executed in this safe, isolated space are protected from adversaries, including a malicious operating system. TEEs are usually build by integrating protection mechanisms directly into the processor or by using dedicated external secure elements. However, both of these approaches only cover a narrow threat model resulting in limited security guarantees. Enclaves nested into the application processor typically provide weak isolation between the secure and non-secure domain, especially when considering side-channel attacks. Although external secure elements do provide strong isolation, the slow communication interface to the application processor is exposed to adversaries and restricts the use cases. Independently of the used approach, TEEs often lack the possibility to establish secure communication to peripherals, and most operating systems executed inside TEEs do not provide state-of-the-art defense strategies, making them vulnerable to various attacks. We argue that TEEs, such as Intel SGX or ARM TrustZone, implemented on the main application processor, are insecure, especially when considering side-channel attacks. In this paper, we demonstrate how a heterogeneous multicore architecture can be utilized to realize a secure TEE design. We directly embed a secure processor into our HECTOR-V architecture to provide strong isolation between the secure and non-secure domain. The tight coupling of the TEE and the application processor enables HECTOR-V to provide mechanisms for establishing secure communication channels between different devices. We further introduce RISC-V Secure Co-Processor (RVSCP), a security-hardened processor tailored for TEEs. To secure applications executed inside the TEE, RVSCP provides hardware enforced control-flow integrity and rigorously restricts I/O accesses to certain execution states. RVSCP reduces the trusted computing base to a minimum by providing operating system services directly in hardware.}
+      \field{booktitle}{Proceedings of the 2021 {ACM} {Asia} {Conference} on {Computer} and {Communications} {Security}}
+      \field{isbn}{978-1-4503-8287-8}
+      \field{series}{{ASIA} {CCS} '21}
+      \field{shorttitle}{{HECTOR}-{V}}
+      \field{title}{{HECTOR}-{V}: {A} {Heterogeneous} {CPU} {Architecture} for a {Secure} {RISC}-{V} {Execution} {Environment}}
+      \field{urlday}{4}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \field{pages}{187\bibrangedash 199}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1145/3433210.3453112
+      \endverb
+      \verb{file}
+      \verb Version soumise:/Users/raphael/Zotero/storage/W24UL43B/Nasahl et al. - 2021 - HECTOR-V A Heterogeneous CPU Architecture for a Secure RISC-V Execution Environment.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/3433210.3453112
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/3433210.3453112
+      \endverb
+    \endentry
+    \entry{pinto_demystifying_2019}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=044295238f729256d31cbc3528d70729}{%
+           family={Pinto},
+           familyi={P\bibinitperiod},
+           given={Sandro},
+           giveni={S\bibinitperiod}}}%
+        {{hash=3cd45629a36de2491a77fe362796e963}{%
+           family={Santos},
+           familyi={S\bibinitperiod},
+           given={Nuno},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{fullhash}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{fullhashraw}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{bibnamehash}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{authorbibnamehash}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{authornamehash}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{authorfullhash}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \strng{authorfullhashraw}{11c9d7a1e6973cd43b376fd4a9c47f39}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{The world is undergoing an unprecedented technological transformation, evolving into a state where ubiquitous Internet-enabled “things” will be able to generate and share large amounts of security- and privacy-sensitive data. To cope with the security threats that are thus foreseeable, system designers can find in Arm TrustZone hardware technology a most valuable resource. TrustZone is a System-on-Chip and CPU system-wide security solution, available on today’s Arm application processors and present in the new generation Arm microcontrollers, which are expected to dominate the market of smart “things.” Although this technology has remained relatively underground since its inception in 2004, over the past years, numerous initiatives have significantly advanced the state of the art involving Arm TrustZone. Motivated by this revival of interest, this paper presents an in-depth study of TrustZone technology. We provide a comprehensive survey of relevant work from academia and industry, presenting existing systems into two main areas, namely, Trusted Execution Environments and hardware-assisted virtualization. Furthermore, we analyze the most relevant weaknesses of existing systems and propose new research directions within the realm of tiniest devices and the Internet of Things, which we believe to have potential to yield high-impact contributions in the future.}
+      \field{issn}{0360-0300, 1557-7341}
+      \field{journaltitle}{ACM Computing Surveys}
+      \field{month}{11}
+      \field{number}{6}
+      \field{shorttitle}{Demystifying {Arm} {TrustZone}}
+      \field{title}{Demystifying {Arm} {TrustZone}: {A} {Comprehensive} {Survey}}
+      \field{urlday}{19}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{volume}{51}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \field{pages}{1\bibrangedash 36}
+      \range{pages}{36}
+      \verb{doi}
+      \verb 10.1145/3291047
+      \endverb
+      \verb{file}
+      \verb PDF:/Users/raphael/Zotero/storage/CYAGYQBS/Pinto et Santos - 2019 - Demystifying Arm TrustZone A Comprehensive Survey.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/3291047
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/3291047
+      \endverb
+    \endentry
+    \entry{schneider_sok_2022}{misc}{}{}
+      \name{author}{5}{}{%
+        {{hash=60a6ce14ca05aa8f1179991b49302a27}{%
+           family={Schneider},
+           familyi={S\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=6861f257555d3afe2b440e7ef7160308}{%
+           family={Masti},
+           familyi={M\bibinitperiod},
+           given={Ramya\bibnamedelima Jayaram},
+           giveni={R\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=7d91fac2b7a472f7b8da972b3ca12bcf}{%
+           family={Shinde},
+           familyi={S\bibinitperiod},
+           given={Shweta},
+           giveni={S\bibinitperiod}}}%
+        {{hash=028ff5c4d1eab5a2f2b2a92fb4d9bf88}{%
+           family={Capkun},
+           familyi={C\bibinitperiod},
+           given={Srdjan},
+           giveni={S\bibinitperiod}}}%
+        {{hash=ae553a5cb3230dbc7154b2df465c93bb}{%
+           family={Perez},
+           familyi={P\bibinitperiod},
+           given={Ronald},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{8a15ec2b7696640d96a366e39021cf58}
+      \strng{fullhash}{c53626ea3725e2cf0c12e97c2600e97d}
+      \strng{fullhashraw}{c53626ea3725e2cf0c12e97c2600e97d}
+      \strng{bibnamehash}{8a15ec2b7696640d96a366e39021cf58}
+      \strng{authorbibnamehash}{8a15ec2b7696640d96a366e39021cf58}
+      \strng{authornamehash}{8a15ec2b7696640d96a366e39021cf58}
+      \strng{authorfullhash}{c53626ea3725e2cf0c12e97c2600e97d}
+      \strng{authorfullhashraw}{c53626ea3725e2cf0c12e97c2600e97d}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{The growing complexity of modern computing platforms and the need for strong isolation protections among their software components has led to the increased adoption of Trusted Execution Environments (TEEs). While several commercial and academic TEE architectures have emerged in recent times, they remain hard to compare and contrast. More generally, existing TEEs have not been subject to a holistic systematization to understand the available design alternatives for various aspects of TEE design and their corresponding pros-and-cons. Therefore, in this work, we analyze the design of existing TEEs and systematize the mechanisms that TEEs implement to achieve their security goals, namely, verifiable launch, run-time isolation, trusted IO, and secure storage. More specifically, we analyze the typical architectural building blocks underlying TEE solutions, design alternatives for each of these components and the trade-offs that they entail. We focus on hardware-assisted TEEs and cover a wide range of TEE proposals from academia and the industry. Our analysis shows that although TEEs are diverse in terms of their goals, usage models, and instruction set architectures, they all share many common building blocks in terms of their design.}
+      \field{month}{5}
+      \field{note}{arXiv:2205.12742}
+      \field{shorttitle}{{SoK}}
+      \field{title}{{SoK}: {Hardware}-supported {Trusted} {Execution} {Environments}}
+      \field{urlday}{24}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/Users/raphael/Zotero/storage/7558SVWG/Schneider et al. - 2022 - SoK Hardware-supported Trusted Execution Environments.pdf:application/pdf;Snapshot:/Users/raphael/Zotero/storage/IWR4QG9A/2205.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2205.12742
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2205.12742
+      \endverb
+      \keyw{Computer Science - Cryptography and Security,Computer Science - Hardware Architecture}
+    \endentry
+    \entry{noauthor_system--chip_nodate}{misc}{}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The System-on-Chip (SoC) Market was valued at USD 361.41 million and is predicted to reach USD 696.69 million, with a CAGR of 8.55\% by 2032.}
+      \field{title}{System-{On}-{Chip} ({Soc}) {Market} {Size}, {Analysis} \& {Growth} {By} 2032}
+      \field{urlday}{9}
+      \field{urlmonth}{12}
+      \field{urlyear}{2024}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb Snapshot:/Users/raphael/Zotero/storage/5Q684FFP/global-system-on-chip-soc-market.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.databridgemarketresearch.com/reports/global-system-on-chip-soc-market
+      \endverb
+      \verb{url}
+      \verb https://www.databridgemarketresearch.com/reports/global-system-on-chip-soc-market
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

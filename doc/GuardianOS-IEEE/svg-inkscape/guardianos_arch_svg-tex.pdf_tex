@@ -1,0 +1,202 @@
+%% Creator: Inkscape 1.4 (e7c3feb1, 2024-10-09), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'guardianos_arch_svg-tex.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{706.45513916bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.69458628)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.37431476,0.38633849){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$seL4$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.04520681,0.38740013){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$S$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.37431476,0.31733198){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$OpenSBI$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.04520681,0.31733198){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$M$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.16198705,0.60928258){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Security Monitor\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.58664246,0.60928258){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}trusted app\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.04520681,0.51904331){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$U$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.03131834,0.1745416){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Bus\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.56540969,0.08058659){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$ Trusted\  IP$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.7777374,0.08058659){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$ Untrusted\  IP$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.58664246,0.58380326){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$process\_t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.10572021,0.12623705){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$0x00000000$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.10572021,0.10500428){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$...$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.10572021,0.08377151){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$0xFFFFFFFF$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.38493114,0.60928258){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}untrusted app\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.38493114,0.58380326){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$process\_t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.35202169,0.54770755){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$tcb\_t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=18]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.43764119,0.54773657){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$tcb\_t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=19]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.37431062,0.66887727){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}capabilities\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=20]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.16198705,0.593358){\color[rgb]{1,0.2,0.2}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Root Task\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=21]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.84741316,0.43305058){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$CSR's$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=22]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.41181781){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x000\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=23]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.3424656,0.13154524){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$Security\ Oracle$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=24]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.90782561,0.34847696){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Supervisor-Level\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=25]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.90580328,0.29503757){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Hypervisor\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=26]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.90580328,0.25257203){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Machine-Level\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=27]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.39058504){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xCFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=28]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.36935227){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x100\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=29]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.32688673){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xDFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=30]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.28442119){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xDFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=31]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.30565396){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x200\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=32]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.24195565){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0xFFF\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=33]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.78902304,0.26318842){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x300\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=34]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.28938367,0.09438789){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}source\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=35]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.3424656,0.09438789){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}dest\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=36]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.39554753,0.09438789){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}right\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=37]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.39554753,0.07315512){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=38]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.39554753,0.05192235){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=39]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.56540969,0.13154524){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}wrapper\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=40]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.7777374,0.13154524){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}wrapper\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=41]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.7887286,0.34862315){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0x5C0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=42]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.37431476,0.26425006){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$MMU$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=43]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.37431476,0.24301729){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}memory dispatch read / write +\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=44]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.67016859){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}IP device\_id\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=45]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.63831944){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}thread/process id\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=46]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.82960704,0.59585389){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$U$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=47]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.82960704,0.56920337){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$S$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=48]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.82960704,0.54077046){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$M$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=49]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.59585389){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}user mode\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=50]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.56920337){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}supervisor mode\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=51]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.54077046){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}machine mode\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=52]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.3424656,0.03068958){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=53]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.28938367,0.03068958){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=54]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.39554753,0.03068958){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}...\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=55]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.34899594,0.5242594){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Cspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=56]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.3424656,0.50099545){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Vspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=57]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.5089213){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}seL4 capability\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=58]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.55450324,0.54876919){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$tcb\_t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=59]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.55127238,0.5243515){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Cspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=60]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.54417692,0.50099545){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Vspace\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=61]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.63979729,0.54905878){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}$tcb\_t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=62]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.19830566,0.3934502){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}TCB Configure\\set the id of the TCB Object\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=63]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.16198705,0.56469376){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}create a process\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=64]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.16244862,0.52796853){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}set the id based\\on the trust\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=65]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.16198705,0.47020793){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}pass the capabilities\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=66]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.46475338,0.38656703){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}schedule a task\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=67]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.5930123,0.39265648){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}write the task id\\to the CSR\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=68]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.90580328,0.40753311){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Unprivileged and\\User level\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=69]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.10591512,0.06556192){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}memory\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=70]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.15896847,0.1768029){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}\textit{insert new rules}\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=71]{guardianos_arch_svg-tex.pdf}}%
+    \put(0.85296309,0.48035578){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}hardware\end{tabular}}}}%
+    \put(0.03993435,0.04563717){\color[rgb]{0.29019608,0.2745098,0.2745098}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}protected by seL4 caps \end{tabular}}}}%
+    \put(0.92805293,0.14388753){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}TrustSoC\end{tabular}}}}%
+    \put(0.93744322,0.43817851){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}RISC-V\end{tabular}}}}%
+  \end{picture}%
+\endgroup%
